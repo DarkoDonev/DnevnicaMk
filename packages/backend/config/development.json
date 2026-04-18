@@ -1,0 +1,9 @@
+{
+  "formatLogsForKibana": false,
+  "redis": {
+    "host": "localhost",
+    "port": "6379"
+  },
+  "domain": "localhost:3500",
+  "LUCENE_HOST": "http://localhost:8080"
+}

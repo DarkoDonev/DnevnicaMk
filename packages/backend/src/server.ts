@@ -1,0 +1,82 @@
+import * as bodyParser from 'body-parser';
+import {Action, useExpressServer} from 'routing-controllers';
+import 'reflect-metadata';
+import express from 'express';
+
+import sequelizeConnection from "./sequelize";
+import responseTime from "response-time";
+import morgan from "morgan";
+import moment from "moment";
+import helmet from 'helmet';
+//Start the worker
+
+
+
+const app = express();
+
+app.use(express.json({limit: '50mb'})); // Setting body size limit
+// Morgan
+const removeCredentials = (data: any) => {
+    if (data.password) {
+        data.password = '********'
+    }
+    if (data.verify) {
+        data.verify = '********'
+    }
+    if (data.shared_secret) {
+        data.shared_secret = '****************'
+    }
+    return data;
+}
+app.use(responseTime());
+app.use(morgan((tokens, req, res) => {
+    // Cast req.user to User type
+    // TODO IMPLEMENT THIS
+    let user = null;
+    return user;
+}));
+
+// Body Parser
+app.use(bodyParser.json());
+
+// Helmet
+app.use(helmet.hidePoweredBy());
+
+const fileExtension = __filename.endsWith('.ts') ? 'ts' : 'js';
+
+useExpressServer(app, {
+    cors: true,
+    controllers: [__dirname + `/routes/controllers/*.${fileExtension}`],
+    middlewares: [__dirname + `/routes/middlewares/*.${fileExtension}`],
+    interceptors: [__dirname + `/routes/interceptors/*.${fileExtension}`],
+    authorizationChecker: async (action: Action, roleNames: string[]) => {
+        try {
+            return true; // TODO: THIS NEED TO BE IMPLEMENTED
+        } catch (e: any) {
+            console.error('Failed to validate token', e);
+            return false;
+        }
+    },
+    currentUserChecker: async (action: Action) => {
+        return null; //TODO: THIS NEED TO BE IMPLEMENTED
+        // return user.get({plain: true});
+    },
+
+    classTransformer: true,
+    validation: true,
+    defaultErrorHandler: false,
+});
+
+const PORT = 3500;
+
+
+app.use(bodyParser.json());
+// app.use(cors());
+
+sequelizeConnection.authenticate().then(() => {
+    console.debug('Sequelize connection has been established successfully.')
+}).catch((error) => {
+    console.error("Unable to connect to the database:", error)
+})
+
+app.listen(PORT, () => {})

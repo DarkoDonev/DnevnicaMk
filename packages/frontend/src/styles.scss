@@ -1,0 +1,169 @@
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
+// Plus imports for other components in your app.
+ @include mat.core();
+
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+form {
+  width: 42%;
+  margin: 35px auto 100px;
+  display: block;
+  float: none;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.misc-bottom-padding {
+  margin: 8px 0 20px;
+}
+
+.misc-bottom-padding mat-label {
+  margin-right: 15px;
+}
+
+.mat-radio-label {
+  margin: 0 15px 0 0;
+}
+
+.title-center {
+  margin: 0 auto;
+}
+
+.button-wrapper {
+  margin-top: 10px;
+}
+
+.invalid-feedback {
+  font-size: 100%;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.table-content {
+  height: 400px;
+  max-width: 100%;
+}
+
+.search-form {
+  border-radius: 30px 0 0 30px;
+}
+
+.center-icon {
+  margin: 0;
+  font-size: 20px;
+}
+
+.hero-card-info p {
+  margin: 8px 0;
+  font-size: 16px;
+  color: #444;
+}
+
+.hero-card-info {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.hero-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+mat-card-title, mat-card-subtitle {
+  font-weight: bold;
+}
+
+mat-card-content p {
+  margin: 16px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.hero-card-info h2 {
+  font-size: 18px;
+  margin: 5px 0;
+  color: #666;
+}
+
+.hero-card-info h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.li-add-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.ul-add-source {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.right-button {
+  margin-left: auto;
+}
+
+.form-75-width {
+  width: 75%;
+}
+
+button.disabled {
+  pointer-events: none;
+}
+
+.mat-form-field-margin10 {
+  display: block;
+  margin: 10px;
+}
+
+.todo-info {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #dfdf43;
+  color: #952626;
+}
+
+.label-margin-top10 {
+  display: block;
+  margin-top: 10px;
+}
+

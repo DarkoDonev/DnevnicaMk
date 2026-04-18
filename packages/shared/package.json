@@ -1,0 +1,16 @@
+{
+  "name": "dnevnicamk-shared",
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12"
+  }
+}

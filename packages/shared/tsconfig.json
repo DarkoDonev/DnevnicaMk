@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    //    "declaration": true,
+    //    "declarationMap": true,
+    "composite": true,
+    "sourceMap": true,
+    "strictPropertyInitialization": false,
+    "outDir": "./build",
+
+    /* Strict Type-Checking Options */
+    "strict": true,
+
+    "esModuleInterop": true,
+
+    /* Experimental Options */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+}

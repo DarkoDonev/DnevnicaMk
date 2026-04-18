@@ -1,0 +1,10 @@
+[Unit]
+Description=Redis for DnevnicaMk
+After=syslog.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+RestartSec=5s
+Restart=always
+[Install]
+WantedBy=multi-user.target
