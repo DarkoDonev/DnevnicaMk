@@ -36,6 +36,29 @@
               </span>
             </div>
 
+            <div class="invite-actions" *ngIf="app.status === 'INVITED'">
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="respondingApplicationId !== null"
+                (click)="respondToInvitation(app, 'ACCEPT')"
+              >
+                <mat-icon aria-hidden="true">check_circle</mat-icon>
+                Accept
+              </button>
+              <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                [disabled]="respondingApplicationId !== null"
+                (click)="respondToInvitation(app, 'DECLINE')"
+              >
+                <mat-icon aria-hidden="true">close</mat-icon>
+                Decline
+              </button>
+            </div>
+
             <div class="timestamps">
               <div>Applied: {{ app.createdAtIso | date: 'MMM d, y, HH:mm' }}</div>
               <div>Updated: {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>

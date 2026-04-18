@@ -2,176 +2,72 @@
   <header class="page-hd">
     <div>
       <div class="eyebrow">Company</div>
-      <h1 class="title">Post Jobs</h1>
-      <p class="subtitle">Create listings with multiple required skills, then students can discover and search them.</p>
+      <h1 class="title">Your Job Posts</h1>
+      <p class="subtitle">Manage active openings, review applicants, and send requests to potential matches.</p>
     </div>
+
+    <button mat-flat-button color="primary" type="button" (click)="openNewJobModal()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      New Job Post
+    </button>
   </header>
 
-  <div class="layout">
-    <mat-card class="composer" appearance="outlined">
-      <mat-card-header>
-        <mat-card-title class="card-title">New Job Post</mat-card-title>
-        <mat-card-subtitle>Saved to the database via the Node.js API</mat-card-subtitle>
-      </mat-card-header>
+  <section class="results">
+    <ng-container *ngIf="jobs$ | async as jobs; else loading">
+      <div class="grid" *ngIf="jobs.length > 0; else empty">
+        <mat-card class="job-card" appearance="outlined" *ngFor="let job of jobs; trackBy: trackJob">
+          <mat-card-header>
+            <mat-card-title>{{ job.title }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ job.location }} • {{ job.workMode }} • {{ listingTypeLabel(job) }}
+            </mat-card-subtitle>
+          </mat-card-header>
 
-      <mat-card-content>
-        <form class="form" [formGroup]="form" (ngSubmit)="submit()">
-          <mat-form-field appearance="outline">
-            <mat-label>Title</mat-label>
-            <input matInput formControlName="title" placeholder="e.g. Junior Frontend Intern (Angular)" />
-          </mat-form-field>
+          <mat-card-content>
+            <p class="desc">{{ job.description }}</p>
 
-          <div class="two">
-            <mat-form-field appearance="outline">
-              <mat-label>Location</mat-label>
-              <input matInput formControlName="location" placeholder="e.g. Skopje, MK or Remote" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Work Mode</mat-label>
-              <mat-select formControlName="workMode">
-                <mat-option *ngFor="let m of workModes" [value]="m">{{ m }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <div class="type-box">
-            <div class="type-hd">Listing Type</div>
-            <div class="type-grid">
-              <mat-checkbox formControlName="isJob">Work</mat-checkbox>
-              <mat-checkbox formControlName="isInternship">Internship</mat-checkbox>
-            </div>
-          </div>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Description</mat-label>
-            <textarea
-              matInput
-              formControlName="description"
-              rows="5"
-              placeholder="What will the student work on? What does success look like?"
-            ></textarea>
-          </mat-form-field>
-
-          <div class="reqs" formArrayName="requirements">
-            <div class="reqs-hd">
-              <div class="reqs-title">Required Skills</div>
-              <button mat-stroked-button type="button" (click)="addRequirement()">
-                <mat-icon aria-hidden="true">add</mat-icon>
-                Add Skill
-              </button>
-            </div>
-
-            <div class="reqs-list">
-              <div class="req-row" *ngFor="let g of requirements.controls; let i = index" [formGroupName]="i">
-                <mat-form-field appearance="outline">
-                  <mat-label>Skill</mat-label>
-                  <mat-select formControlName="skillName">
-                    <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Min Years</mat-label>
-                  <input matInput type="number" min="0" max="50" formControlName="minYears" />
-                </mat-form-field>
-
-                <button
-                  mat-icon-button
-                  type="button"
-                  class="rm"
-                  (click)="removeRequirement(i)"
-                  [disabled]="requirements.length <= 1"
-                  aria-label="Remove requirement"
-                >
-                  <mat-icon aria-hidden="true">close</mat-icon>
-                </button>
+            <div class="stats">
+              <div class="stat-box">
+                <span class="stat-label">Applications</span>
+                <span class="stat-value">{{ applicationsCount(job) }}</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">Invited</span>
+                <span class="stat-value">{{ invitedCount(job) }}</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-label">Potential</span>
+                <span class="stat-value">{{ potentialCount(job) }}</span>
               </div>
             </div>
-          </div>
 
-          <button class="submit" mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
-            <mat-icon aria-hidden="true">publish</mat-icon>
-            Post Job
-          </button>
-        </form>
-      </mat-card-content>
-    </mat-card>
+            <div class="meta" *ngIf="postedAtLabel(job.postedAtIso)">
+              Posted {{ postedAtLabel(job.postedAtIso) }}
+            </div>
+          </mat-card-content>
 
-    <section class="jobs">
-      <div class="jobs-hd">
-        <div class="jobs-title">Your Job Posts</div>
-        <div class="jobs-sub">Visible to students under Student ▸ Jobs and manageable below.</div>
+          <mat-card-actions align="end">
+            <a mat-stroked-button [routerLink]="['/company/jobs', job.id]">
+              <mat-icon aria-hidden="true">visibility</mat-icon>
+              View Details
+            </a>
+          </mat-card-actions>
+        </mat-card>
       </div>
+    </ng-container>
 
-      <ng-container *ngIf="companyJobsVm$ | async as vm; else loading">
-        <div class="grid" *ngIf="vm.jobs.length > 0; else empty">
-          <div class="job-with-applications" *ngFor="let j of vm.jobs; trackBy: trackJob">
-            <app-job-card [job]="j"></app-job-card>
+    <ng-template #loading>
+      <div class="state">
+        <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+        <div class="state-txt">Loading jobs...</div>
+      </div>
+    </ng-template>
 
-            <mat-card class="applications" appearance="outlined">
-              <mat-card-header>
-                <mat-card-title>Applicants</mat-card-title>
-                <mat-card-subtitle>{{ (vm.applicationsByJobId.get(j.id) ?? []).length }} applications</mat-card-subtitle>
-              </mat-card-header>
-
-              <mat-card-content>
-                <div class="apps-list" *ngIf="(vm.applicationsByJobId.get(j.id) ?? []).length > 0; else noApplicants">
-                  <div class="app-row" *ngFor="let app of vm.applicationsByJobId.get(j.id) ?? []; trackBy: trackApplication">
-                    <div class="app-main">
-                      <div class="app-name">{{ app.student?.name || 'Applicant' }}</div>
-                      <div class="app-email">{{ app.student?.email || '' }}</div>
-                      <div class="app-updated">Updated {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
-                      <span class="status-pill" [ngClass]="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
-                    </div>
-
-                    <div class="app-actions" *ngIf="getActionsForStatus(app.status).length > 0">
-                      <button
-                        *ngFor="let action of getActionsForStatus(app.status)"
-                        mat-flat-button
-                        type="button"
-                        [color]="action.color"
-                        [disabled]="updatingApplicationId !== null"
-                        (click)="updateStatus(app, action)"
-                      >
-                        <mat-icon aria-hidden="true" *ngIf="action.status === 'REJECTED'">block</mat-icon>
-                        <mat-icon aria-hidden="true" *ngIf="action.status !== 'REJECTED'">arrow_forward</mat-icon>
-                        {{ action.label }}
-                      </button>
-                    </div>
-
-                    <div class="app-reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
-                      <div class="reason-hd">Reason</div>
-                      <div class="reason-text">{{ app.rejectionReason }}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <ng-template #noApplicants>
-                  <div class="applications-empty">
-                    <mat-icon aria-hidden="true">person_search</mat-icon>
-                    <span>No applicants for this job yet.</span>
-                  </div>
-                </ng-template>
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </div>
-      </ng-container>
-
-      <ng-template #loading>
-        <div class="state">
-          <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
-          <div class="state-txt">Loading jobs…</div>
-        </div>
-      </ng-template>
-
-      <ng-template #empty>
-        <div class="state">
-          <mat-icon class="state-ic" aria-hidden="true">work_outline</mat-icon>
-          <div class="state-txt">No jobs yet. Post your first opening.</div>
-        </div>
-      </ng-template>
-    </section>
-  </div>
+    <ng-template #empty>
+      <div class="state">
+        <mat-icon class="state-ic" aria-hidden="true">work_outline</mat-icon>
+        <div class="state-txt">No jobs yet. Click "New Job Post" to publish your first opening.</div>
+      </div>
+    </ng-template>
+  </section>
 </div>

@@ -76,6 +76,11 @@
   background: rgba(59, 130, 246, 0.18);
 }
 
+.status-invited {
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.3);
+}
+
 .status-approved {
   color: #14532d;
   background: rgba(34, 197, 94, 0.22);
@@ -91,9 +96,26 @@
   background: rgba(139, 92, 246, 0.24);
 }
 
+.status-done {
+  color: #134e4a;
+  background: rgba(45, 212, 191, 0.22);
+}
+
+.status-declined {
+  color: #7c2d12;
+  background: rgba(251, 146, 60, 0.22);
+}
+
 .status-rejected {
   color: #991b1b;
   background: rgba(248, 113, 113, 0.24);
+}
+
+.invite-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .timestamps {

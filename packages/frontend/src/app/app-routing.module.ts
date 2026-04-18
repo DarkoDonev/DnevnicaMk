@@ -5,6 +5,7 @@ import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
 import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
+import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/company-job-details.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
 import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentJobsComponent} from './talent/pages/student-jobs/student-jobs.component';
@@ -45,6 +46,7 @@ const routes: Routes = [
       {path: '', pathMatch: 'full', redirectTo: 'profile'},
       {path: 'profile', component: CompanyProfileComponent},
       {path: 'students', component: CompanyDashboardComponent},
+      {path: 'jobs/:jobId', component: CompanyJobDetailsComponent},
       {path: 'jobs', component: CompanyJobsComponent},
     ],
   },

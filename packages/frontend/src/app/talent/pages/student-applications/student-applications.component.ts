@@ -3,7 +3,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
-import {ApplicationStatus, JobApplication} from '../../models';
+import {ApplicationStatus, InviteDecision, JobApplication} from '../../models';
 import {JobBoardService} from '../../services/job-board.service';
 
 @Component({
@@ -14,6 +14,7 @@ import {JobBoardService} from '../../services/job-board.service';
 })
 export class StudentApplicationsComponent {
   private readonly reload$ = new Subject<void>();
+  respondingApplicationId: number | null = null;
 
   readonly applications$ = this.reload$.pipe(
     startWith(undefined),
@@ -41,8 +42,29 @@ export class StudentApplicationsComponent {
     this.reload$.next();
   }
 
+  respondToInvitation(application: JobApplication, decision: InviteDecision): void {
+    if (this.respondingApplicationId !== null || application.status !== 'INVITED') return;
+    this.respondingApplicationId = application.id;
+
+    this.jobs.respondToInvitation(application.id, decision).subscribe({
+      next: () => {
+        const msg = decision === 'ACCEPT' ? 'Invitation accepted.' : 'Invitation declined.';
+        this.snackBar.open(msg, 'Dismiss', {duration: 2500});
+        this.respondingApplicationId = null;
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        const msg = this.toErrorMessage(err, 'Could not update invitation response.');
+        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        this.respondingApplicationId = null;
+      },
+    });
+  }
+
   statusLabel(status: ApplicationStatus): string {
     switch (status) {
+      case 'INVITED':
+        return 'Invited';
       case 'APPLIED':
         return 'Applied';
       case 'APPROVED':
@@ -51,6 +73,10 @@ export class StudentApplicationsComponent {
         return 'HR Interview';
       case 'TECHNICAL_INTERVIEW':
         return 'Technical Interview';
+      case 'DONE':
+        return 'Done';
+      case 'DECLINED':
+        return 'Declined';
       case 'REJECTED':
         return 'Rejected';
       default:
@@ -60,6 +86,8 @@ export class StudentApplicationsComponent {
 
   statusClass(status: ApplicationStatus): string {
     switch (status) {
+      case 'INVITED':
+        return 'status-invited';
       case 'APPLIED':
         return 'status-applied';
       case 'APPROVED':
@@ -68,6 +96,10 @@ export class StudentApplicationsComponent {
         return 'status-hr';
       case 'TECHNICAL_INTERVIEW':
         return 'status-tech';
+      case 'DONE':
+        return 'status-done';
+      case 'DECLINED':
+        return 'status-declined';
       case 'REJECTED':
         return 'status-rejected';
       default:

@@ -2,7 +2,15 @@ import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from 'sequelize-t
 import {Job} from './Job';
 import {Student} from './Student';
 
-export type ApplicationStatus = 'APPLIED' | 'APPROVED' | 'HR_INTERVIEW' | 'TECHNICAL_INTERVIEW' | 'REJECTED';
+export type ApplicationStatus =
+  | 'INVITED'
+  | 'APPLIED'
+  | 'APPROVED'
+  | 'HR_INTERVIEW'
+  | 'TECHNICAL_INTERVIEW'
+  | 'DONE'
+  | 'DECLINED'
+  | 'REJECTED';
 
 @Table({tableName: 'job_applications'})
 export class JobApplication extends Model<JobApplication> {
@@ -24,7 +32,16 @@ export class JobApplication extends Model<JobApplication> {
   declare student?: Student;
 
   @Column({
-    type: DataType.ENUM('APPLIED', 'APPROVED', 'HR_INTERVIEW', 'TECHNICAL_INTERVIEW', 'REJECTED'),
+    type: DataType.ENUM(
+      'INVITED',
+      'APPLIED',
+      'APPROVED',
+      'HR_INTERVIEW',
+      'TECHNICAL_INTERVIEW',
+      'DONE',
+      'DECLINED',
+      'REJECTED',
+    ),
     allowNull: false,
     defaultValue: 'APPLIED',
   })

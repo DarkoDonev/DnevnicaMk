@@ -21,6 +21,7 @@ import {CompanyDashboardComponent} from './talent/pages/company-dashboard/compan
 import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
 import {StudentAiEvaluationDialogComponent} from './talent/pages/company-dashboard/student-ai-evaluation-dialog.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
+import {NewJobPostDialogComponent} from './talent/pages/company-jobs/new-job-post-dialog.component';
 import {RejectApplicationDialogComponent} from './talent/pages/company-jobs/reject-application-dialog.component';
 import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
@@ -31,6 +32,7 @@ import {AuthTokenInterceptor} from './talent/interceptors/auth-token.interceptor
 import {CompanyRegistrationPendingComponent} from './talent/pages/company-registration-pending/company-registration-pending.component';
 import {AdminCompanyApprovalsComponent} from './talent/pages/admin-company-approvals/admin-company-approvals.component';
 import {EventsPageComponent} from './talent/pages/events-page/events-page.component';
+import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/company-job-details.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +43,8 @@ import {EventsPageComponent} from './talent/pages/events-page/events-page.compon
     CompanyProfileComponent,
     StudentAiEvaluationDialogComponent,
     CompanyJobsComponent,
+    NewJobPostDialogComponent,
+    CompanyJobDetailsComponent,
     RejectApplicationDialogComponent,
     StudentApplicationsComponent,
     StudentProfileComponent,

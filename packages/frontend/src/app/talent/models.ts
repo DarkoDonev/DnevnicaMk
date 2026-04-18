@@ -93,7 +93,15 @@ export interface Company {
 }
 
 export type WorkMode = 'Remote' | 'Hybrid' | 'On-site';
-export type ApplicationStatus = 'APPLIED' | 'APPROVED' | 'HR_INTERVIEW' | 'TECHNICAL_INTERVIEW' | 'REJECTED';
+export type ApplicationStatus =
+  | 'INVITED'
+  | 'APPLIED'
+  | 'APPROVED'
+  | 'HR_INTERVIEW'
+  | 'TECHNICAL_INTERVIEW'
+  | 'DONE'
+  | 'DECLINED'
+  | 'REJECTED';
 
 export interface JobRequirement {
   skillName: string;
@@ -112,6 +120,11 @@ export interface JobPost {
   description: string;
   requirements: JobRequirement[];
   postedAtIso: string;
+  stats?: {
+    applicationsCount: number;
+    invitedCount: number;
+    potentialCount: number;
+  };
 }
 
 export interface JobApplicationJobSummary {
@@ -130,6 +143,8 @@ export interface JobApplicationStudentSummary {
   id: number;
   name: string;
   email: string;
+  headline?: string;
+  location?: string;
 }
 
 export interface JobApplication {
@@ -142,6 +157,24 @@ export interface JobApplication {
   student?: JobApplicationStudentSummary;
 }
 
+export type InviteDecision = 'ACCEPT' | 'DECLINE';
+
+export interface PotentialStudent {
+  id: number;
+  name: string;
+  email: string;
+  headline: string;
+  location: string;
+  seekingJob: boolean;
+  seekingInternship: boolean;
+  skills: StudentSkill[];
+}
+
+export interface CompanyJobDetails {
+  job: JobPost;
+  applications: JobApplication[];
+}
+
 export interface EventItem {
   id: number;
   title: string;
@@ -151,4 +184,9 @@ export interface EventItem {
   sourceName: string;
   sourceUrl: string;
   eventUrl: string;
+  createdByCompany: boolean;
+  company?: {
+    id: number;
+    name: string;
+  };
 }

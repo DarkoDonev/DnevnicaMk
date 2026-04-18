@@ -1,9 +1,12 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
-import {catchError, map, of, shareReplay, startWith} from 'rxjs';
+import {NonNullableFormBuilder, Validators} from '@angular/forms';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {catchError, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {AuthService} from '../../services/auth.service';
 import {EventItem} from '../../models';
-import {EventsService} from '../../services/events.service';
+import {CreateCompanyEventPayload, EventsService} from '../../services/events.service';
 
 type LoadStatus = 'loading' | 'ready' | 'error';
 
@@ -20,29 +23,110 @@ interface EventsViewState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventsPageComponent {
-  readonly state$ = this.eventsService.getUpcomingEvents().pipe(
-    map<readonly EventItem[], EventsViewState>((data) => ({status: 'ready', data})),
-    startWith<EventsViewState>({status: 'loading', data: []}),
-    catchError((err: unknown) =>
-      of({
-        status: 'error' as const,
-        data: [],
-        errorMessage: this.toErrorMessage(err),
-      }),
+  private readonly reload$ = new Subject<void>();
+
+  readonly authState$ = this.auth.authState$;
+  readonly isCompany$ = this.authState$.pipe(
+    map((auth) => auth.role === 'company'),
+    shareReplay({bufferSize: 1, refCount: true}),
+  );
+
+  readonly createForm = this.fb.group({
+    title: this.fb.control('', {validators: [Validators.required, Validators.minLength(4)]}),
+    startsAtLocal: this.fb.control(this.defaultStartsAtLocal(), {validators: [Validators.required]}),
+    location: this.fb.control(''),
+    snippet: this.fb.control(''),
+    eventUrl: this.fb.control('', {validators: [Validators.required, Validators.pattern(/^https?:\/\/.+/i)]}),
+  });
+
+  readonly state$ = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.eventsService.getUpcomingEvents().pipe(
+        map<readonly EventItem[], EventsViewState>((data) => ({status: 'ready', data})),
+        startWith<EventsViewState>({status: 'loading', data: []}),
+        catchError((err: unknown) =>
+          of({
+            status: 'error' as const,
+            data: [],
+            errorMessage: this.toErrorMessage(err, 'Failed to load events.'),
+          }),
+        ),
+      ),
     ),
     shareReplay({bufferSize: 1, refCount: true}),
   );
 
-  constructor(private readonly eventsService: EventsService) {}
+  isSubmitting = false;
+
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly auth: AuthService,
+    private readonly fb: NonNullableFormBuilder,
+    private readonly snackBar: MatSnackBar,
+  ) {}
 
   trackEvent = (_: number, event: EventItem) => event.id;
 
-  private toErrorMessage(err: unknown): string {
+  submitCompanyEvent(): void {
+    if (this.createForm.invalid || this.isSubmitting) return;
+
+    const raw = this.createForm.getRawValue();
+    const startsAt = new Date(raw.startsAtLocal);
+    if (Number.isNaN(startsAt.getTime())) {
+      this.snackBar.open('Please provide a valid start date/time.', 'Dismiss', {duration: 3500});
+      return;
+    }
+
+    const payload: CreateCompanyEventPayload = {
+      title: raw.title.trim(),
+      startsAtIso: startsAt.toISOString(),
+      location: raw.location.trim() || undefined,
+      snippet: raw.snippet.trim() || undefined,
+      eventUrl: raw.eventUrl.trim(),
+    };
+
+    this.isSubmitting = true;
+    this.eventsService.createCompanyEvent(payload).subscribe({
+      next: () => {
+        this.snackBar.open('Event published.', 'Dismiss', {duration: 2500});
+        this.createForm.reset({
+          title: '',
+          startsAtLocal: this.defaultStartsAtLocal(),
+          location: '',
+          snippet: '',
+          eventUrl: '',
+        });
+        this.isSubmitting = false;
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        this.snackBar.open(this.toErrorMessage(err, 'Could not publish event.'), 'Dismiss', {duration: 3500});
+        this.isSubmitting = false;
+      },
+    });
+  }
+
+  private defaultStartsAtLocal(): string {
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    now.setHours(now.getHours() + 24);
+
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  }
+
+  private toErrorMessage(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse) {
+      if (typeof err.error?.message === 'string') return err.error.message;
       if (err.status === 0) return 'Could not reach the server. Please try again.';
-      return err.error?.message || `Failed to load events (HTTP ${err.status}).`;
+      return `Failed to load events (HTTP ${err.status}).`;
     }
     if (err instanceof Error) return err.message;
-    return 'Failed to load events.';
+    return fallback;
   }
 }

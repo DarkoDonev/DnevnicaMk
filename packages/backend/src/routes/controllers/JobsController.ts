@@ -33,24 +33,50 @@ import {ApplicationStatus, JobApplication} from '../../sequelize/models/JobAppli
 import {Job} from '../../sequelize/models/Job';
 import {JobRequirement} from '../../sequelize/models/JobRequirement';
 import {Student} from '../../sequelize/models/Student';
+import {StudentSkill} from '../../sequelize/models/StudentSkill';
 import {TechSkill} from '../../sequelize/models/TechSkill';
 import {User} from '../../sequelize/models/User';
 
+interface NormalizedRequirement {
+  skillName: string;
+  minYears: number;
+}
+
+interface JobStats {
+  applicationsCount: number;
+  invitedCount: number;
+  potentialCount: number;
+}
+
+interface JobFlags {
+  isJob: boolean;
+  isInternship: boolean;
+}
+
 const APPLICATION_STATUSES: readonly ApplicationStatus[] = [
+  'INVITED',
   'APPLIED',
   'APPROVED',
   'HR_INTERVIEW',
   'TECHNICAL_INTERVIEW',
+  'DONE',
+  'DECLINED',
   'REJECTED',
 ];
 
 const APPLICATION_TRANSITIONS: Record<ApplicationStatus, readonly ApplicationStatus[]> = {
+  INVITED: [],
   APPLIED: ['APPROVED', 'REJECTED'],
   APPROVED: ['HR_INTERVIEW', 'TECHNICAL_INTERVIEW', 'REJECTED'],
-  HR_INTERVIEW: ['TECHNICAL_INTERVIEW', 'REJECTED'],
-  TECHNICAL_INTERVIEW: ['HR_INTERVIEW', 'REJECTED'],
+  HR_INTERVIEW: ['DONE', 'REJECTED'],
+  TECHNICAL_INTERVIEW: ['DONE', 'REJECTED'],
+  DONE: [],
+  DECLINED: [],
   REJECTED: [],
 };
+
+const STUDENT_INVITE_DECISIONS = ['ACCEPT', 'DECLINE'] as const;
+type StudentInviteDecision = (typeof STUDENT_INVITE_DECISIONS)[number];
 
 class RequirementBody {
   @IsString()
@@ -93,6 +119,22 @@ class CreateJobBody {
   requirements!: RequirementBody[];
 }
 
+class PotentialPreviewBody {
+  @IsOptional()
+  @IsBoolean()
+  isJob?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isInternship?: boolean;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({each: true})
+  @Type(() => RequirementBody)
+  requirements!: RequirementBody[];
+}
+
 class UpdateApplicationStatusBody {
   @IsIn(APPLICATION_STATUSES as string[])
   status!: ApplicationStatus;
@@ -102,8 +144,67 @@ class UpdateApplicationStatusBody {
   rejectionReason?: string;
 }
 
-function mapJob(j: Job) {
-  return {
+class InviteStudentBody {
+  @IsInt()
+  @Min(1)
+  studentId!: number;
+}
+
+class RespondToInvitationBody {
+  @IsIn(STUDENT_INVITE_DECISIONS as unknown as string[])
+  decision!: StudentInviteDecision;
+}
+
+function normalizeRequirements(requirements: readonly {skillName: string; minYears: number}[]): NormalizedRequirement[] {
+  const dedup = new Map<string, number>();
+
+  for (const req of requirements) {
+    const skillName = (req.skillName ?? '').trim();
+    if (!skillName) continue;
+
+    const minYears = Math.max(0, Number(req.minYears ?? 0));
+    const prev = dedup.get(skillName);
+    dedup.set(skillName, prev === undefined ? minYears : Math.max(prev, minYears));
+  }
+
+  return Array.from(dedup.entries()).map(([skillName, minYears]) => ({skillName, minYears}));
+}
+
+function extractJobRequirements(job: Job): NormalizedRequirement[] {
+  const reqs = (job.requirements ?? []).map((r) => ({
+    skillName: ((r.techSkill as any)?.name ?? '').trim(),
+    minYears: Math.max(0, Number(r.minYears ?? 0)),
+  }));
+
+  return normalizeRequirements(reqs);
+}
+
+function matchesListingType(flags: JobFlags, student: Student): boolean {
+  if (!flags.isJob && !flags.isInternship) return true;
+
+  const matchesJob = !!flags.isJob && !!student.seekingJob;
+  const matchesInternship = !!flags.isInternship && !!student.seekingInternship;
+  return matchesJob || matchesInternship;
+}
+
+function studentSatisfiesRequirements(student: Student, requirements: readonly NormalizedRequirement[]): boolean {
+  if (requirements.length === 0) return true;
+
+  const yearsBySkill = new Map<string, number>();
+  for (const studentSkill of student.studentSkills ?? []) {
+    const skillName = ((studentSkill.techSkill as any)?.name ?? '').trim();
+    if (!skillName) continue;
+
+    const years = Math.max(0, Number(studentSkill.yearsOfExperience ?? 0));
+    const prev = yearsBySkill.get(skillName);
+    yearsBySkill.set(skillName, prev === undefined ? years : Math.max(prev, years));
+  }
+
+  return requirements.every((req) => (yearsBySkill.get(req.skillName) ?? -1) >= req.minYears);
+}
+
+function mapJob(j: Job, stats?: JobStats) {
+  const mapped: any = {
     id: j.id,
     companyId: j.companyId,
     companyName: (j.company as any)?.name ?? '',
@@ -119,6 +220,12 @@ function mapJob(j: Job) {
       minYears: r.minYears,
     })),
   };
+
+  if (stats) {
+    mapped.stats = stats;
+  }
+
+  return mapped;
 }
 
 function mapJobApplication(app: JobApplication, includeStudent: boolean) {
@@ -142,14 +249,34 @@ function mapJobApplication(app: JobApplication, includeStudent: boolean) {
       postedAtIso: job?.postedAt?.toISOString?.() ?? '',
     },
   };
+
   if (includeStudent) {
     mapped.student = {
       id: student?.id ?? app.studentId,
       name: student?.name ?? '',
       email: student?.user?.email ?? '',
+      headline: student?.headline ?? '',
+      location: student?.location ?? '',
     };
   }
+
   return mapped;
+}
+
+function mapPotentialStudent(student: Student) {
+  return {
+    id: student.id,
+    name: student.name,
+    email: (student.user as any)?.email ?? '',
+    headline: student.headline,
+    location: student.location,
+    seekingJob: !!student.seekingJob,
+    seekingInternship: !!student.seekingInternship,
+    skills: (student.studentSkills ?? []).map((skill) => ({
+      skillName: (skill.techSkill as any)?.name ?? '',
+      yearsOfExperience: skill.yearsOfExperience,
+    })),
+  };
 }
 
 @JsonController('/api/jobs')
@@ -177,8 +304,7 @@ export class JobsController {
   @Authorized('company')
   @Get('/company')
   async listForCompany(@CurrentUser() user: any) {
-    const company = await Company.findOne({where: {userId: user.sub}});
-    if (!company) throw new UnauthorizedError('Not a company.');
+    const company = await this.requireCompany(user);
 
     const jobs = await Job.findAll({
       where: {companyId: company.id},
@@ -193,8 +319,21 @@ export class JobsController {
       order: [['postedAt', 'DESC']],
     });
 
+    if (jobs.length === 0) {
+      return {data: []};
+    }
+
+    const jobIds = jobs.map((j) => j.id);
+    const applications = await JobApplication.findAll({
+      where: {jobId: jobIds},
+      attributes: ['jobId', 'studentId', 'status'],
+    });
+
+    const students = await this.fetchStudentsForMatching(false);
+    const statsByJobId = this.buildStatsByJobId(jobs, applications, students);
+
     return {
-      data: jobs.map((j) => mapJob(j)),
+      data: jobs.map((j) => mapJob(j, statsByJobId.get(j.id))),
     };
   }
 
@@ -213,7 +352,7 @@ export class JobsController {
         },
         {
           model: Student,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'name', 'headline', 'location'],
           include: [{model: User, attributes: ['email']}],
         },
       ],
@@ -223,6 +362,139 @@ export class JobsController {
     return {
       data: applications.map((a) => mapJobApplication(a, true)),
     };
+  }
+
+  @Authorized('company')
+  @Get('/company/:jobId/potential-students')
+  async listPotentialStudents(@CurrentUser() user: any, @Param('jobId') jobIdParam: string) {
+    const company = await this.requireCompany(user);
+    const jobId = Number(jobIdParam);
+    if (!Number.isInteger(jobId) || jobId <= 0) {
+      throw new BadRequestError('Invalid job id.');
+    }
+
+    const job = await this.requireOwnedJob(company, jobId);
+    const potentialStudents = await this.getPotentialStudentsForJob(job, true);
+
+    return {
+      data: potentialStudents.map((student) => mapPotentialStudent(student)),
+    };
+  }
+
+  @Authorized('company')
+  @Get('/company/:jobId')
+  async getCompanyJobDetails(@CurrentUser() user: any, @Param('jobId') jobIdParam: string) {
+    const company = await this.requireCompany(user);
+    const jobId = Number(jobIdParam);
+    if (!Number.isInteger(jobId) || jobId <= 0) {
+      throw new BadRequestError('Invalid job id.');
+    }
+
+    const job = await this.requireOwnedJob(company, jobId);
+    const applications = await JobApplication.findAll({
+      where: {jobId},
+      include: [
+        {
+          model: Job,
+          attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
+          include: [{model: Company, attributes: ['id', 'name']}],
+        },
+        {
+          model: Student,
+          attributes: ['id', 'name', 'headline', 'location'],
+          include: [{model: User, attributes: ['email']}],
+        },
+      ],
+      order: [['updatedAt', 'DESC']],
+    });
+
+    const potentialStudents = await this.getPotentialStudentsForJob(job, true);
+
+    return {
+      data: {
+        job: mapJob(job, {
+          applicationsCount: applications.length,
+          invitedCount: applications.filter((app) => app.status === 'INVITED').length,
+          potentialCount: potentialStudents.length,
+        }),
+        applications: applications.map((app) => mapJobApplication(app, true)),
+      },
+    };
+  }
+
+  @Authorized('company')
+  @Post('/company/:jobId/invitations')
+  async inviteStudentToJob(
+    @CurrentUser() user: any,
+    @Param('jobId') jobIdParam: string,
+    @Body() body: InviteStudentBody,
+  ) {
+    const company = await this.requireCompany(user);
+    const jobId = Number(jobIdParam);
+    if (!Number.isInteger(jobId) || jobId <= 0) {
+      throw new BadRequestError('Invalid job id.');
+    }
+
+    const job = await this.requireOwnedJob(company, jobId);
+
+    const student = await Student.findByPk(body.studentId, {
+      attributes: ['id', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship'],
+      include: [
+        {model: User, attributes: ['email']},
+        {
+          model: StudentSkill,
+          attributes: ['yearsOfExperience'],
+          include: [{model: TechSkill, attributes: ['name']}],
+        },
+      ],
+    });
+
+    if (!student) throw new NotFoundError('Student not found.');
+
+    const existing = await JobApplication.findOne({where: {jobId, studentId: student.id}});
+    if (existing) {
+      throw new BadRequestError('This student already has an application for this job.');
+    }
+
+    const requirements = extractJobRequirements(job);
+    const flags: JobFlags = {isJob: !!job.isJob, isInternship: !!job.isInternship};
+    const isPotential = matchesListingType(flags, student) && studentSatisfiesRequirements(student, requirements);
+    if (!isPotential) {
+      throw new BadRequestError('Student does not match this job requirements.');
+    }
+
+    try {
+      const application = await JobApplication.create({
+        jobId,
+        studentId: student.id,
+        status: 'INVITED',
+        rejectionReason: null,
+      });
+
+      const created = await JobApplication.findByPk(application.id, {
+        include: [
+          {
+            model: Job,
+            attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
+            include: [{model: Company, attributes: ['id', 'name']}],
+          },
+          {
+            model: Student,
+            attributes: ['id', 'name', 'headline', 'location'],
+            include: [{model: User, attributes: ['email']}],
+          },
+        ],
+      });
+
+      return {
+        data: mapJobApplication(created!, true),
+      };
+    } catch (e) {
+      if (e instanceof UniqueConstraintError) {
+        throw new BadRequestError('This student already has an application for this job.');
+      }
+      throw e;
+    }
   }
 
   @Authorized('company')
@@ -247,7 +519,7 @@ export class JobsController {
         },
         {
           model: Student,
-          attributes: ['id', 'name'],
+          attributes: ['id', 'name', 'headline', 'location'],
           include: [{model: User, attributes: ['email']}],
         },
       ],
@@ -280,6 +552,46 @@ export class JobsController {
   }
 
   @Authorized('student')
+  @Patch('/student/applications/:applicationId/respond')
+  async respondToInvitation(
+    @CurrentUser() user: any,
+    @Param('applicationId') applicationIdParam: string,
+    @Body() body: RespondToInvitationBody,
+  ) {
+    const student = await this.requireStudent(user);
+    const applicationId = Number(applicationIdParam);
+    if (!Number.isInteger(applicationId) || applicationId <= 0) {
+      throw new BadRequestError('Invalid application id.');
+    }
+
+    const application = await JobApplication.findByPk(applicationId, {
+      include: [
+        {
+          model: Job,
+          attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
+          include: [{model: Company, attributes: ['id', 'name']}],
+        },
+      ],
+    });
+
+    if (!application) throw new NotFoundError('Application not found.');
+    if (application.studentId !== student.id) {
+      throw new UnauthorizedError('You cannot respond to another student\'s invitation.');
+    }
+    if (application.status !== 'INVITED') {
+      throw new BadRequestError('Only INVITED applications can be accepted or declined.');
+    }
+
+    application.status = body.decision === 'ACCEPT' ? 'APPLIED' : 'DECLINED';
+    application.rejectionReason = null;
+    await application.save();
+
+    return {
+      data: mapJobApplication(application, false),
+    };
+  }
+
+  @Authorized('student')
   @Get('/applications/me')
   async listMyApplications(@CurrentUser() user: any) {
     const student = await this.requireStudent(user);
@@ -298,6 +610,31 @@ export class JobsController {
 
     return {
       data: applications.map((a) => mapJobApplication(a, false)),
+    };
+  }
+
+  @Authorized('company')
+  @Post('/company/potential-preview')
+  async previewPotentialStudents(@Body() body: PotentialPreviewBody) {
+    const requirements = normalizeRequirements(body.requirements);
+    if (requirements.length === 0) {
+      return {
+        data: {count: 0},
+      };
+    }
+
+    const flags: JobFlags = {
+      isJob: body.isJob ?? true,
+      isInternship: body.isInternship ?? false,
+    };
+
+    const students = await this.fetchStudentsForMatching(false);
+    const count = students.filter(
+      (student) => matchesListingType(flags, student) && studentSatisfiesRequirements(student, requirements),
+    ).length;
+
+    return {
+      data: {count},
     };
   }
 
@@ -325,12 +662,12 @@ export class JobsController {
         {transaction: t},
       );
 
-      // Resolve skills by name
       const uniqueSkills = new Map<string, number>();
-      for (const r of body.requirements) {
-        const key = r.skillName;
-        const val = Math.max(0, Number(r.minYears ?? 0));
-        uniqueSkills.set(key, Math.max(uniqueSkills.get(key) ?? 0, val));
+      for (const req of body.requirements) {
+        const skillName = req.skillName.trim();
+        if (!skillName) continue;
+        const minYears = Math.max(0, Number(req.minYears ?? 0));
+        uniqueSkills.set(skillName, Math.max(uniqueSkills.get(skillName) ?? 0, minYears));
       }
 
       for (const [skillName, minYears] of uniqueSkills.entries()) {
@@ -407,6 +744,110 @@ export class JobsController {
 
   private canTransition(current: ApplicationStatus, next: ApplicationStatus): boolean {
     return APPLICATION_TRANSITIONS[current].includes(next);
+  }
+
+  private buildStatsByJobId(
+    jobs: readonly Job[],
+    applications: readonly JobApplication[],
+    students: readonly Student[],
+  ): Map<number, JobStats> {
+    const existingStudentIdsByJobId = new Map<number, Set<number>>();
+    const applicationsCountByJobId = new Map<number, number>();
+    const invitedCountByJobId = new Map<number, number>();
+
+    for (const app of applications) {
+      const jobId = Number(app.jobId);
+      const existingIds = existingStudentIdsByJobId.get(jobId) ?? new Set<number>();
+      existingIds.add(Number(app.studentId));
+      existingStudentIdsByJobId.set(jobId, existingIds);
+
+      applicationsCountByJobId.set(jobId, (applicationsCountByJobId.get(jobId) ?? 0) + 1);
+      if (app.status === 'INVITED') {
+        invitedCountByJobId.set(jobId, (invitedCountByJobId.get(jobId) ?? 0) + 1);
+      }
+    }
+
+    const statsByJobId = new Map<number, JobStats>();
+
+    for (const job of jobs) {
+      const requirements = extractJobRequirements(job);
+      const existingIds = existingStudentIdsByJobId.get(job.id) ?? new Set<number>();
+      const flags: JobFlags = {isJob: !!job.isJob, isInternship: !!job.isInternship};
+
+      const potentialCount = students.filter((student) => {
+        if (existingIds.has(student.id)) return false;
+        if (!matchesListingType(flags, student)) return false;
+        return studentSatisfiesRequirements(student, requirements);
+      }).length;
+
+      statsByJobId.set(job.id, {
+        applicationsCount: applicationsCountByJobId.get(job.id) ?? 0,
+        invitedCount: invitedCountByJobId.get(job.id) ?? 0,
+        potentialCount,
+      });
+    }
+
+    return statsByJobId;
+  }
+
+  private async getPotentialStudentsForJob(job: Job, includeUser: boolean): Promise<Student[]> {
+    const applications = await JobApplication.findAll({
+      where: {jobId: job.id},
+      attributes: ['studentId'],
+    });
+    const excludedStudentIds = new Set<number>(applications.map((app) => Number(app.studentId)));
+
+    const students = await this.fetchStudentsForMatching(includeUser);
+    const requirements = extractJobRequirements(job);
+    const flags: JobFlags = {isJob: !!job.isJob, isInternship: !!job.isInternship};
+
+    return students
+      .filter((student) => {
+        if (excludedStudentIds.has(student.id)) return false;
+        if (!matchesListingType(flags, student)) return false;
+        return studentSatisfiesRequirements(student, requirements);
+      })
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private async fetchStudentsForMatching(includeUser: boolean): Promise<Student[]> {
+    const includes: any[] = [
+      {
+        model: StudentSkill,
+        attributes: ['yearsOfExperience'],
+        include: [{model: TechSkill, attributes: ['name']}],
+      },
+    ];
+
+    if (includeUser) {
+      includes.push({model: User, attributes: ['email']});
+    }
+
+    return Student.findAll({
+      attributes: ['id', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship'],
+      include: includes,
+      order: [['name', 'ASC']],
+    });
+  }
+
+  private async requireOwnedJob(company: Company, jobId: number): Promise<Job> {
+    const job = await Job.findByPk(jobId, {
+      include: [
+        {model: Company, attributes: ['id', 'name']},
+        {
+          model: JobRequirement,
+          attributes: ['minYears'],
+          include: [{model: TechSkill, attributes: ['name']}],
+        },
+      ],
+    });
+
+    if (!job) throw new NotFoundError('Job not found.');
+    if (job.companyId !== company.id) {
+      throw new UnauthorizedError('You cannot access jobs from another company.');
+    }
+    return job;
   }
 
   private async requireCompany(user: any): Promise<Company> {

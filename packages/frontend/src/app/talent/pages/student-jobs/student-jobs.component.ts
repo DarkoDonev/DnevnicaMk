@@ -92,6 +92,8 @@ export class StudentJobsComponent {
 
   statusLabel(status: ApplicationStatus): string {
     switch (status) {
+      case 'INVITED':
+        return 'Invited';
       case 'APPLIED':
         return 'Applied';
       case 'APPROVED':
@@ -100,6 +102,10 @@ export class StudentJobsComponent {
         return 'HR Interview';
       case 'TECHNICAL_INTERVIEW':
         return 'Technical Interview';
+      case 'DONE':
+        return 'Done';
+      case 'DECLINED':
+        return 'Declined';
       case 'REJECTED':
         return 'Rejected';
       default:

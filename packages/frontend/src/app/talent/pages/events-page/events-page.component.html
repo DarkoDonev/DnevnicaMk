@@ -3,14 +3,57 @@
     <div>
       <div class="eyebrow">Community</div>
       <h1 class="title">Events</h1>
-      <p class="subtitle">Upcoming job-fair and hiring events scraped daily from configured sources.</p>
+      <p class="subtitle">Upcoming hiring and career events, including company-published opportunities.</p>
     </div>
   </header>
+
+  <mat-card class="create-card" appearance="outlined" *ngIf="isCompany$ | async">
+    <mat-card-header>
+      <mat-card-title>Create Event</mat-card-title>
+      <mat-card-subtitle>Publish a hiring event visible to students immediately.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="create-form" [formGroup]="createForm" (ngSubmit)="submitCompanyEvent()" autocomplete="off">
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" placeholder="e.g. Summer Internship Open Day" />
+        </mat-form-field>
+
+        <div class="two">
+          <mat-form-field appearance="outline">
+            <mat-label>Starts At</mat-label>
+            <input matInput type="datetime-local" formControlName="startsAtLocal" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Location</mat-label>
+            <input matInput formControlName="location" placeholder="Optional" />
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Event URL</mat-label>
+          <input matInput formControlName="eventUrl" placeholder="https://..." />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Short Snippet</mat-label>
+          <textarea matInput rows="3" formControlName="snippet" placeholder="Optional brief info"></textarea>
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="createForm.invalid || isSubmitting">
+          <mat-icon aria-hidden="true">publish</mat-icon>
+          {{ isSubmitting ? 'Publishing...' : 'Publish Event' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
 
   <ng-container *ngIf="state$ | async as state">
     <section class="state" *ngIf="state.status === 'loading'">
       <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-      <div class="state-txt">Loading events…</div>
+      <div class="state-txt">Loading events...</div>
     </section>
 
     <section class="state" *ngIf="state.status === 'error'">
@@ -29,6 +72,11 @@
             </a>
           </div>
 
+          <div class="badges">
+            <span class="badge company" *ngIf="event.createdByCompany">Company Event</span>
+            <span class="badge scraped" *ngIf="!event.createdByCompany">Scraped Event</span>
+          </div>
+
           <div class="meta">
             <div class="meta-item">
               <mat-icon aria-hidden="true">event</mat-icon>
@@ -38,7 +86,11 @@
               <mat-icon aria-hidden="true">location_on</mat-icon>
               <span>{{ event.location }}</span>
             </div>
-            <div class="meta-item">
+            <div class="meta-item" *ngIf="event.createdByCompany && event.company">
+              <mat-icon aria-hidden="true">apartment</mat-icon>
+              <span>{{ event.company.name }}</span>
+            </div>
+            <div class="meta-item" *ngIf="!event.createdByCompany">
               <mat-icon aria-hidden="true">language</mat-icon>
               <a [href]="event.sourceUrl" target="_blank" rel="noopener noreferrer">{{ event.sourceName }}</a>
             </div>
@@ -51,7 +103,7 @@
 
     <section class="state" *ngIf="state.status === 'ready' && state.data.length === 0">
       <mat-icon class="state-ic" aria-hidden="true">event_busy</mat-icon>
-      <div class="state-txt">No upcoming job-fair events found at the moment.</div>
+      <div class="state-txt">No upcoming events found at the moment.</div>
     </section>
   </ng-container>
 </div>

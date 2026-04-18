@@ -1,0 +1,260 @@
+.page {
+  padding: 24px 18px 42px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.page-hd {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.hd-main {
+  display: grid;
+  gap: 4px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.66);
+}
+
+.summary {
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.desc {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.76);
+  line-height: 1.6;
+}
+
+.stats {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat-box {
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(248, 250, 252, 0.92);
+  padding: 9px;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(15, 23, 42, 0.58);
+}
+
+.stat-value {
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.requirements {
+  margin-top: 14px;
+}
+
+.req-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.section-hd {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-hd h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.section-sub {
+  color: rgba(15, 23, 42, 0.64);
+  font-weight: 700;
+}
+
+.apps-list,
+.potential-list {
+  display: grid;
+  gap: 10px;
+}
+
+.app-card,
+.potential-card {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.app-head,
+.student-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.app-name,
+.student-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.app-email,
+.student-email {
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.app-meta,
+.student-meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.64);
+}
+
+.student-headline {
+  margin: 10px 0 10px;
+  color: rgba(15, 23, 42, 0.73);
+}
+
+.app-updated {
+  margin-top: 8px;
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 12px;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.status-invited {
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.3);
+}
+
+.status-applied {
+  color: #1e3a8a;
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.status-approved {
+  color: #14532d;
+  background: rgba(34, 197, 94, 0.22);
+}
+
+.status-hr {
+  color: #854d0e;
+  background: rgba(250, 204, 21, 0.28);
+}
+
+.status-tech {
+  color: #4c1d95;
+  background: rgba(139, 92, 246, 0.24);
+}
+
+.status-done {
+  color: #134e4a;
+  background: rgba(45, 212, 191, 0.22);
+}
+
+.status-declined {
+  color: #7c2d12;
+  background: rgba(251, 146, 60, 0.22);
+}
+
+.status-rejected {
+  color: #991b1b;
+  background: rgba(248, 113, 113, 0.24);
+}
+
+.app-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-reason {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(254, 242, 242, 0.8);
+  padding: 10px;
+}
+
+.reason-hd {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: rgba(153, 27, 27, 0.9);
+}
+
+.reason-text {
+  margin-top: 6px;
+  color: rgba(127, 29, 29, 0.9);
+  line-height: 1.45;
+}
+
+.state {
+  padding: 24px 16px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+  color: rgba(15, 23, 42, 0.66);
+}
+
+@media (max-width: 760px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .app-head,
+  .student-head {
+    flex-direction: column;
+  }
+}

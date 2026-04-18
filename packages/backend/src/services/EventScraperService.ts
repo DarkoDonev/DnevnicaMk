@@ -496,7 +496,13 @@ export class EventScraperService {
         snippet: event.snippet ?? null,
         dedupeKey: event.dedupeKey,
         lastSeenAt: seenAt,
+        companyId: null,
+        createdByCompany: false,
       });
+      return;
+    }
+
+    if (existing.createdByCompany) {
       return;
     }
 

@@ -1,4 +1,5 @@
-import {Column, DataType, Model, Table} from 'sequelize-typescript';
+import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from 'sequelize-typescript';
+import {Company} from './Company';
 
 @Table({tableName: 'events'})
 export class Event extends Model<Event> {
@@ -25,6 +26,16 @@ export class Event extends Model<Event> {
 
   @Column({type: DataType.TEXT, allowNull: true})
   declare snippet?: string | null;
+
+  @ForeignKey(() => Company)
+  @Column({type: DataType.INTEGER, allowNull: true})
+  declare companyId?: number | null;
+
+  @BelongsTo(() => Company)
+  declare company?: Company;
+
+  @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: false})
+  declare createdByCompany: boolean;
 
   @Column({type: DataType.STRING(512), allowNull: false})
   declare dedupeKey: string;

@@ -1,0 +1,168 @@
+<div class="page">
+  <header class="page-hd" *ngIf="vm$ | async as vm">
+    <a mat-button routerLink="/company/jobs">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Back to Jobs
+    </a>
+
+    <div *ngIf="vm" class="hd-main">
+      <div class="eyebrow">Company</div>
+      <h1 class="title">{{ vm.details.job.title }}</h1>
+      <p class="subtitle">
+        {{ vm.details.job.location }} • {{ vm.details.job.workMode }} • {{ listingTypeLabel(vm.details.job) }}
+      </p>
+    </div>
+  </header>
+
+  <ng-container *ngIf="vm$ | async as vm; else loading">
+    <ng-container *ngIf="vm; else failed">
+      <mat-card class="summary" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Job Summary</mat-card-title>
+          <mat-card-subtitle>Detailed view for this posting</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="desc">{{ vm.details.job.description }}</p>
+
+          <div class="stats">
+            <div class="stat-box">
+              <div class="stat-label">Applications</div>
+              <div class="stat-value">{{ vm.details.job.stats?.applicationsCount ?? vm.details.applications.length }}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Invited</div>
+              <div class="stat-value">{{ vm.details.job.stats?.invitedCount ?? 0 }}</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Potential</div>
+              <div class="stat-value">{{ vm.details.job.stats?.potentialCount ?? vm.potentialStudents.length }}</div>
+            </div>
+          </div>
+
+          <div class="requirements">
+            <div class="req-title">Required Skills</div>
+            <mat-chip-set>
+              <mat-chip *ngFor="let requirement of vm.details.job.requirements; trackBy: trackRequirement">
+                {{ requirement.skillName }} • {{ requirement.minYears }}y+
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <section class="section">
+        <div class="section-hd">
+          <h2>Applicants</h2>
+          <div class="section-sub">{{ vm.details.applications.length }} total</div>
+        </div>
+
+        <div class="apps-list" *ngIf="vm.details.applications.length > 0; else noApplicants">
+          <mat-card class="app-card" appearance="outlined" *ngFor="let app of vm.details.applications; trackBy: trackApplication">
+            <mat-card-content>
+              <div class="app-head">
+                <div>
+                  <div class="app-name">{{ app.student?.name || 'Applicant' }}</div>
+                  <div class="app-email">{{ app.student?.email || '' }}</div>
+                  <div class="app-meta" *ngIf="app.student?.headline">{{ app.student?.headline }}</div>
+                </div>
+
+                <span class="status-pill" [ngClass]="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
+              </div>
+
+              <div class="app-updated">Updated {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+
+              <div class="app-actions" *ngIf="getActionsForStatus(app.status).length > 0">
+                <button
+                  *ngFor="let action of getActionsForStatus(app.status)"
+                  mat-flat-button
+                  type="button"
+                  [color]="action.color"
+                  [disabled]="updatingApplicationId !== null"
+                  (click)="updateStatus(app, action)"
+                >
+                  <mat-icon aria-hidden="true" *ngIf="action.status === 'REJECTED'">block</mat-icon>
+                  <mat-icon aria-hidden="true" *ngIf="action.status !== 'REJECTED'">arrow_forward</mat-icon>
+                  {{ action.label }}
+                </button>
+              </div>
+
+              <div class="app-reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
+                <div class="reason-hd">Reason</div>
+                <div class="reason-text">{{ app.rejectionReason }}</div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <ng-template #noApplicants>
+          <div class="state">
+            <mat-icon aria-hidden="true">person_search</mat-icon>
+            <span>No applicants for this job yet.</span>
+          </div>
+        </ng-template>
+      </section>
+
+      <section class="section">
+        <div class="section-hd">
+          <h2>Potential Matches</h2>
+          <div class="section-sub">{{ vm.potentialStudents.length }} available</div>
+        </div>
+
+        <div class="potential-list" *ngIf="vm.potentialStudents.length > 0; else noPotential">
+          <mat-card class="potential-card" appearance="outlined" *ngFor="let student of vm.potentialStudents; trackBy: trackPotential">
+            <mat-card-content>
+              <div class="student-head">
+                <div>
+                  <div class="student-name">{{ student.name }}</div>
+                  <div class="student-email">{{ student.email }}</div>
+                  <div class="student-meta">{{ student.location }} • Looking for: {{ seekingLabel(student) }}</div>
+                </div>
+
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  [disabled]="invitingStudentId !== null"
+                  (click)="sendRequest(vm.jobId, student.id)"
+                >
+                  <mat-icon aria-hidden="true">send</mat-icon>
+                  Send Request
+                </button>
+              </div>
+
+              <p class="student-headline" *ngIf="student.headline">{{ student.headline }}</p>
+
+              <mat-chip-set>
+                <mat-chip *ngFor="let skill of student.skills; trackBy: trackSkill">
+                  {{ skill.skillName }} • {{ skill.yearsOfExperience }}y
+                </mat-chip>
+              </mat-chip-set>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <ng-template #noPotential>
+          <div class="state">
+            <mat-icon aria-hidden="true">group_off</mat-icon>
+            <span>No unmatched potential students for this job right now.</span>
+          </div>
+        </ng-template>
+      </section>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="state">
+      <mat-progress-spinner mode="indeterminate" diameter="34"></mat-progress-spinner>
+      <span>Loading job details...</span>
+    </div>
+  </ng-template>
+
+  <ng-template #failed>
+    <div class="state">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>Could not load this job details page.</span>
+    </div>
+  </ng-template>
+</div>

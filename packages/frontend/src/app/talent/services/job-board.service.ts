@@ -3,7 +3,16 @@ import {HttpClient} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 
 import {environment} from '../../../environments/environment';
-import {ApplicationStatus, JobApplication, JobPost, JobRequirement, WorkMode} from '../models';
+import {
+  ApplicationStatus,
+  CompanyJobDetails,
+  InviteDecision,
+  JobApplication,
+  JobPost,
+  JobRequirement,
+  PotentialStudent,
+  WorkMode,
+} from '../models';
 
 export interface CreateJobPayload {
   title: string;
@@ -31,9 +40,29 @@ interface JobApplicationsResponse {
   data: JobApplication[];
 }
 
+interface CompanyJobDetailsResponse {
+  data: CompanyJobDetails;
+}
+
+interface PotentialStudentsResponse {
+  data: PotentialStudent[];
+}
+
+interface PotentialPreviewResponse {
+  data: {
+    count: number;
+  };
+}
+
 export interface UpdateJobApplicationStatusPayload {
   status: ApplicationStatus;
   rejectionReason?: string;
+}
+
+export interface PotentialPreviewPayload {
+  isJob: boolean;
+  isInternship: boolean;
+  requirements: JobRequirement[];
 }
 
 @Injectable({providedIn: 'root'})
@@ -66,9 +95,37 @@ export class JobBoardService {
     return this.http.get<JobApplicationsResponse>(`${environment.apiUrl}/jobs/company/applications`).pipe(map((r) => r.data));
   }
 
+  getCompanyJobDetails(jobId: number): Observable<CompanyJobDetails> {
+    return this.http.get<CompanyJobDetailsResponse>(`${environment.apiUrl}/jobs/company/${jobId}`).pipe(map((r) => r.data));
+  }
+
+  getPotentialStudents(jobId: number): Observable<readonly PotentialStudent[]> {
+    return this.http
+      .get<PotentialStudentsResponse>(`${environment.apiUrl}/jobs/company/${jobId}/potential-students`)
+      .pipe(map((r) => r.data));
+  }
+
+  inviteStudent(jobId: number, studentId: number): Observable<JobApplication> {
+    return this.http
+      .post<JobApplicationResponse>(`${environment.apiUrl}/jobs/company/${jobId}/invitations`, {studentId})
+      .pipe(map((r) => r.data));
+  }
+
+  previewPotentialStudents(payload: PotentialPreviewPayload): Observable<number> {
+    return this.http
+      .post<PotentialPreviewResponse>(`${environment.apiUrl}/jobs/company/potential-preview`, payload)
+      .pipe(map((r) => r.data.count));
+  }
+
   updateApplicationStatus(applicationId: number, payload: UpdateJobApplicationStatusPayload): Observable<JobApplication> {
     return this.http
       .patch<JobApplicationResponse>(`${environment.apiUrl}/jobs/company/applications/${applicationId}/status`, payload)
+      .pipe(map((r) => r.data));
+  }
+
+  respondToInvitation(applicationId: number, decision: InviteDecision): Observable<JobApplication> {
+    return this.http
+      .patch<JobApplicationResponse>(`${environment.apiUrl}/jobs/student/applications/${applicationId}/respond`, {decision})
       .pipe(map((r) => r.data));
   }
 }
