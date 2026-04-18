@@ -10,7 +10,11 @@ export class AdminGuard implements CanActivate {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    // This is for now just, it need to be implemented.
-    return true;
+    const accessToken = localStorage.getItem('accessToken');
+    if (!!accessToken) {
+      return true;
+    }
+
+    return this.router.createUrlTree(['/login']);
   }
 }
