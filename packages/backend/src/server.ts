@@ -2,6 +2,8 @@ import * as bodyParser from 'body-parser';
 import {Action, useExpressServer} from 'routing-controllers';
 import 'reflect-metadata';
 import express from 'express';
+import jwt from 'jsonwebtoken';
+import path from 'path';
 
 import sequelizeConnection from "./sequelize";
 import responseTime from "response-time";
@@ -42,6 +44,10 @@ app.use(bodyParser.json());
 // Helmet
 app.use(helmet.hidePoweredBy());
 
+// Serve uploaded files and other static assets
+const staticRoot = path.resolve(__dirname, '../static');
+app.use('/static', express.static(staticRoot));
+
 const fileExtension = __filename.endsWith('.ts') ? 'ts' : 'js';
 
 useExpressServer(app, {
@@ -51,15 +57,28 @@ useExpressServer(app, {
     interceptors: [__dirname + `/routes/interceptors/*.${fileExtension}`],
     authorizationChecker: async (action: Action, roleNames: string[]) => {
         try {
-            return true; // TODO: THIS NEED TO BE IMPLEMENTED
+            const authHeader = action.request.headers?.authorization as string | undefined;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+
+            const token = authHeader.slice('Bearer '.length).trim();
+            if (!token) return false;
+
+            const secret = process.env['JWT_SECRET_KEY'] || 'dev-secret-change-me';
+            const payload = jwt.verify(token, secret);
+            (action.request as any).user = payload;
+
+            if (roleNames?.length) {
+                const role = (payload as any)?.role;
+                return roleNames.includes(role);
+            }
+            return true;
         } catch (e: any) {
             console.error('Failed to validate token', e);
             return false;
         }
     },
     currentUserChecker: async (action: Action) => {
-        return null; //TODO: THIS NEED TO BE IMPLEMENTED
-        // return user.get({plain: true});
+        return (action.request as any).user ?? null;
     },
 
     classTransformer: true,

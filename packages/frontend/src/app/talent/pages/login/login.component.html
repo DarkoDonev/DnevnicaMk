@@ -1,0 +1,81 @@
+<div class="login">
+  <section class="pitch" aria-label="Product pitch">
+    <div class="pitch-inner">
+      <div class="kicker">TalentBridge</div>
+      <h1 class="headline">Match companies with student talent in minutes.</h1>
+      <p class="subhead">
+        A lightweight directory with skill-based filtering, clear profiles, and fast decision-making.
+      </p>
+
+      <div class="bullets" role="list">
+        <div class="bullet" role="listitem">
+          <mat-icon aria-hidden="true">tune</mat-icon>
+          <span>Filter by predefined skills and years of experience</span>
+        </div>
+        <div class="bullet" role="listitem">
+          <mat-icon aria-hidden="true">bolt</mat-icon>
+          <span>Instant results powered by RxJS streams</span>
+        </div>
+        <div class="bullet" role="listitem">
+          <mat-icon aria-hidden="true">verified</mat-icon>
+          <span>Consistent skill taxonomy across the app</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Login panel">
+    <mat-card class="card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="card-title">Login</mat-card-title>
+        <mat-card-subtitle>Choose your role and authenticate via the API</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+          <div class="role-toggle">
+            <mat-button-toggle-group formControlName="role" aria-label="Role">
+              <mat-button-toggle value="company">
+                <mat-icon aria-hidden="true">apartment</mat-icon>
+                Company
+              </mat-button-toggle>
+              <mat-button-toggle value="student">
+                <mat-icon aria-hidden="true">school</mat-icon>
+                Student
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="name@company.com" />
+            <mat-error *ngIf="form.controls.email.touched && form.controls.email.invalid">
+              Enter a valid email.
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="••••••••" />
+            <mat-error *ngIf="form.controls.password.touched && form.controls.password.invalid">
+              Password must be at least 6 characters.
+            </mat-error>
+          </mat-form-field>
+
+          <button class="submit" mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+            <span>Enter</span>
+            <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+          </button>
+
+          <div class="footer">
+            <a mat-button routerLink="/register">New here? Create an account</a>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="microcopy">
+      Auth is backed by the Node.js API and database. Seeded demo users are created by the backend seeders.
+    </div>
+  </section>
+</div>

@@ -1,0 +1,31 @@
+<mat-card class="student-card" appearance="outlined">
+  <mat-card-header>
+    <div class="avatar" mat-card-avatar aria-hidden="true">{{ initials }}</div>
+    <mat-card-title class="student-name">{{ student.name }}</mat-card-title>
+    <mat-card-subtitle class="student-headline">{{ student.headline }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="meta">
+      <div class="meta-row">
+        <mat-icon class="meta-ic" aria-hidden="true">place</mat-icon>
+        <span class="meta-txt">{{ student.contact.location }}</span>
+      </div>
+      <div class="meta-row">
+        <mat-icon class="meta-ic" aria-hidden="true">mail</mat-icon>
+        <span class="meta-txt">{{ student.contact.email }}</span>
+      </div>
+    </div>
+
+    <div class="skills">
+      <div class="skills-hd">Skills</div>
+      <mat-chip-set aria-label="Student skills">
+        <mat-chip *ngFor="let s of student.skills; trackBy: trackSkill" class="skill-chip">
+          <span class="skill-name">{{ s.skillName }}</span>
+          <span class="skill-years">{{ s.yearsOfExperience }}y</span>
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </mat-card-content>
+</mat-card>
+

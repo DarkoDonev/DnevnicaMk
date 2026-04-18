@@ -4,6 +4,17 @@
 // Plus imports for other components in your app.
  @include mat.core();
 
+:root {
+  --font-body: 'IBM Plex Sans';
+  --font-display: 'Space Grotesk';
+  --app-toolbar-h: 64px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --app-toolbar-h: 56px;
+  }
+}
 
 html,
 body {
@@ -12,17 +23,10 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
 }
 
-form {
-  width: 42%;
-  margin: 35px auto 100px;
-  display: block;
-  float: none;
-}
-
-.mat-form-field {
+.mat-mdc-form-field {
   width: 100%;
 }
 
@@ -49,9 +53,6 @@ form {
 .invalid-feedback {
   font-size: 100%;
 }
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .table-content {
   height: 400px;
@@ -166,4 +167,3 @@ button.disabled {
   display: block;
   margin-top: 10px;
 }
-

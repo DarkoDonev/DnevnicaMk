@@ -1,0 +1,34 @@
+<mat-card class="job-card" appearance="outlined">
+  <mat-card-header>
+    <div class="badge" mat-card-avatar aria-hidden="true">
+      <mat-icon aria-hidden="true">work</mat-icon>
+    </div>
+    <mat-card-title class="job-title">{{ job.title }}</mat-card-title>
+    <mat-card-subtitle class="job-sub">
+      <span class="co">{{ job.companyName }}</span>
+      <span class="dot" aria-hidden="true">•</span>
+      <span class="loc">{{ job.location }}</span>
+      <span class="dot" aria-hidden="true">•</span>
+      <span class="mode">{{ job.workMode }}</span>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p class="desc">{{ job.description }}</p>
+
+    <div class="reqs">
+      <div class="reqs-hd">Required Skills</div>
+      <mat-chip-set aria-label="Job requirements">
+        <mat-chip *ngFor="let r of job.requirements; trackBy: trackReq" class="req-chip">
+          <span class="req-skill">{{ r.skillName }}</span>
+          <span class="req-years">{{ r.minYears }}y+</span>
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <div class="posted" *ngIf="postedAtLabel">Posted {{ postedAtLabel }}</div>
+  </mat-card-actions>
+</mat-card>
+

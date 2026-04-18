@@ -1,0 +1,120 @@
+<div class="page">
+  <header class="page-hd">
+    <div>
+      <div class="eyebrow">Company</div>
+      <h1 class="title">Post Jobs</h1>
+      <p class="subtitle">Create listings with multiple required skills, then students can discover and search them.</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <mat-card class="composer" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="card-title">New Job Post</mat-card-title>
+        <mat-card-subtitle>Saved to the database via the Node.js API</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" placeholder="e.g. Junior Frontend Intern (Angular)" />
+          </mat-form-field>
+
+          <div class="two">
+            <mat-form-field appearance="outline">
+              <mat-label>Location</mat-label>
+              <input matInput formControlName="location" placeholder="e.g. Skopje, MK or Remote" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Work Mode</mat-label>
+              <mat-select formControlName="workMode">
+                <mat-option *ngFor="let m of workModes" [value]="m">{{ m }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              rows="5"
+              placeholder="What will the student work on? What does success look like?"
+            ></textarea>
+          </mat-form-field>
+
+          <div class="reqs" formArrayName="requirements">
+            <div class="reqs-hd">
+              <div class="reqs-title">Required Skills</div>
+              <button mat-stroked-button type="button" (click)="addRequirement()">
+                <mat-icon aria-hidden="true">add</mat-icon>
+                Add Skill
+              </button>
+            </div>
+
+            <div class="reqs-list">
+              <div class="req-row" *ngFor="let g of requirements.controls; let i = index" [formGroupName]="i">
+                <mat-form-field appearance="outline">
+                  <mat-label>Skill</mat-label>
+                  <mat-select formControlName="skillName">
+                    <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Min Years</mat-label>
+                  <input matInput type="number" min="0" max="50" formControlName="minYears" />
+                </mat-form-field>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="rm"
+                  (click)="removeRequirement(i)"
+                  [disabled]="requirements.length <= 1"
+                  aria-label="Remove requirement"
+                >
+                  <mat-icon aria-hidden="true">close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button class="submit" mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+            <mat-icon aria-hidden="true">publish</mat-icon>
+            Post Job
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <section class="jobs">
+      <div class="jobs-hd">
+        <div class="jobs-title">Your Job Posts</div>
+        <div class="jobs-sub">Visible to students under Student ▸ Jobs</div>
+      </div>
+
+      <ng-container *ngIf="companyJobs$ | async as jobs; else loading">
+        <div class="grid" *ngIf="jobs.length > 0; else empty">
+          <app-job-card *ngFor="let j of jobs; trackBy: trackJob" [job]="j"></app-job-card>
+        </div>
+      </ng-container>
+
+      <ng-template #loading>
+        <div class="state">
+          <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+          <div class="state-txt">Loading jobs…</div>
+        </div>
+      </ng-template>
+
+      <ng-template #empty>
+        <div class="state">
+          <mat-icon class="state-ic" aria-hidden="true">work_outline</mat-icon>
+          <div class="state-txt">No jobs yet. Post your first opening.</div>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</div>

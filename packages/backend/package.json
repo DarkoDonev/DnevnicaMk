@@ -16,6 +16,8 @@
     "start-cronjob-test": "NODE_ENV=test node --inspect=5859 -r ts-node/register src/cronjob.ts",
     "start-cronjob-win": "NODE_ENV=development & node --inspect=5859 -r ts-node/register src/cronjob.ts",
     "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed:all",
+    "db:reset": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
     "remove-duplicates": "node --inspect=5858 -r ts-node/register src/scripts/RemoveDuplicateInstitutionFunctions.ts",
     "build": "tsc --build"
   },

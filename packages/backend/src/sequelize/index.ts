@@ -2,6 +2,13 @@ import {Sequelize} from "sequelize-typescript";
 
 require('dotenv').config(); //must be on top, above imported services
 
+import {Company} from './models/Company';
+import {Job} from './models/Job';
+import {JobRequirement} from './models/JobRequirement';
+import {Student} from './models/Student';
+import {StudentSkill} from './models/StudentSkill';
+import {TechSkill} from './models/TechSkill';
+import {User} from './models/User';
 
 const sequelizeConnection = new Sequelize({
     dialect: 'mysql',
@@ -11,7 +18,13 @@ const sequelizeConnection = new Sequelize({
     username: process.env["DB_USER"]!,
     password: process.env["DB_PASSWORD"]!,
     models: [
-    //    TODO THIS NEED TO BE IMPLEMENTED
+        User,
+        Company,
+        Student,
+        TechSkill,
+        StudentSkill,
+        Job,
+        JobRequirement,
     ],
     dialectOptions: {
         connectTimeout: 15000

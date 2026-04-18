@@ -1,0 +1,120 @@
+<div class="register">
+  <section class="pitch" aria-label="Product pitch">
+    <div class="pitch-inner">
+      <div class="kicker">TalentBridge</div>
+      <h1 class="headline">Create your account.</h1>
+      <p class="subhead">Students build profiles. Companies post jobs and search by skills.</p>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Register panel">
+    <mat-card class="card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="card-title">Register</mat-card-title>
+        <mat-card-subtitle>Create a Student or Company account</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+          <div class="role-toggle">
+            <mat-button-toggle-group formControlName="role" aria-label="Role">
+              <mat-button-toggle value="student">
+                <mat-icon aria-hidden="true">school</mat-icon>
+                Student
+              </mat-button-toggle>
+              <mat-button-toggle value="company">
+                <mat-icon aria-hidden="true">apartment</mat-icon>
+                Company
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="you@example.com" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" formControlName="password" placeholder="••••••••" />
+              <mat-hint>Min 6 characters</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <ng-container *ngIf="form.controls.role.value === 'student'; else company">
+            <div class="section-hd">Student Profile</div>
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name</mat-label>
+              <input matInput formControlName="studentName" placeholder="e.g. Elena Petrova" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Headline</mat-label>
+              <input matInput formControlName="headline" placeholder="e.g. Frontend student (Angular, TypeScript)" />
+            </mat-form-field>
+
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Phone</mat-label>
+                <input matInput formControlName="phone" placeholder="+389 ..." />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Location</mat-label>
+                <input matInput formControlName="location" placeholder="Skopje, MK" />
+              </mat-form-field>
+            </div>
+
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>LinkedIn URL</mat-label>
+                <input matInput formControlName="linkedInUrl" placeholder="https://linkedin.com/in/..." />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>GitHub URL</mat-label>
+                <input matInput formControlName="githubUrl" placeholder="https://github.com/..." />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Bio</mat-label>
+              <textarea matInput rows="4" formControlName="bio" placeholder="A short intro..."></textarea>
+            </mat-form-field>
+          </ng-container>
+
+          <ng-template #company>
+            <div class="section-hd">Company Profile</div>
+            <mat-form-field appearance="outline">
+              <mat-label>Company Name</mat-label>
+              <input matInput formControlName="companyName" placeholder="e.g. Nimbus Labs" />
+            </mat-form-field>
+
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Location</mat-label>
+                <input matInput formControlName="companyLocation" placeholder="Remote / Skopje, MK" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Website</mat-label>
+                <input matInput formControlName="websiteUrl" placeholder="https://company.com" />
+              </mat-form-field>
+            </div>
+          </ng-template>
+
+          <button class="submit" mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+            <mat-icon aria-hidden="true">person_add</mat-icon>
+            Create Account
+          </button>
+
+          <div class="footer">
+            <a mat-button routerLink="/login">Already have an account? Login</a>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</div>
+

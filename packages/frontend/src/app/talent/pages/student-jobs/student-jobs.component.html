@@ -1,0 +1,69 @@
+<div class="page">
+  <header class="page-hd">
+    <div>
+      <div class="eyebrow">Student</div>
+      <h1 class="title">Explore Jobs</h1>
+      <p class="subtitle">Search job posts and filter by multiple skills.</p>
+    </div>
+  </header>
+
+  <mat-card class="filters" appearance="outlined">
+    <mat-card-content>
+      <form class="filters-grid" [formGroup]="filters" autocomplete="off">
+        <mat-form-field appearance="outline" class="q">
+          <mat-label>Search</mat-label>
+          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+          <input matInput formControlName="query" placeholder="Title, company, location, skill..." />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Skills</mat-label>
+          <mat-select formControlName="skills" multiple>
+            <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
+          </mat-select>
+          <mat-hint>Matches any selected skill</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Work Mode</mat-label>
+          <mat-select formControlName="workMode">
+            <mat-option *ngFor="let m of workModeOptions" [value]="m">{{ m }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <section class="results">
+    <div class="results-bar">
+      <div class="results-count">
+        <mat-icon aria-hidden="true">work</mat-icon>
+        <span>{{ ((filteredJobs$ | async) ?? []).length }} jobs</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="filteredJobs$ | async as jobs; else loading">
+      <div class="grid" *ngIf="jobs.length > 0; else empty">
+        <app-job-card *ngFor="let j of jobs; trackBy: trackJob" [job]="j"></app-job-card>
+      </div>
+    </ng-container>
+
+    <ng-template #loading>
+      <div class="state">
+        <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+        <div class="state-txt">Loading jobs…</div>
+      </div>
+    </ng-template>
+
+    <ng-template #empty>
+      <div class="state">
+        <mat-icon class="state-ic" aria-hidden="true">search_off</mat-icon>
+        <div class="state-txt">No jobs match the current filters.</div>
+      </div>
+    </ng-template>
+  </section>
+</div>

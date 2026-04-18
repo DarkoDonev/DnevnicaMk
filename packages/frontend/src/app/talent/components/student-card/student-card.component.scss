@@ -1,0 +1,90 @@
+.student-card {
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(800px 220px at 10% 0%, rgba(45, 212, 191, 0.18), transparent 55%),
+    radial-gradient(800px 240px at 90% 10%, rgba(59, 130, 246, 0.14), transparent 60%),
+    rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 10px 30px rgba(2, 6, 23, 0.06),
+    0 1px 0 rgba(2, 6, 23, 0.04);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(15, 23, 42, 0.85);
+  background:
+    radial-gradient(14px 14px at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0)),
+    linear-gradient(135deg, rgba(45, 212, 191, 0.85), rgba(59, 130, 246, 0.85));
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+}
+
+.student-name {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.student-headline {
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.meta {
+  margin-top: 4px;
+  display: grid;
+  gap: 6px;
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  align-items: center;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.meta-ic {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.meta-txt {
+  font-size: 13px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skills {
+  margin-top: 14px;
+}
+
+.skills-hd {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(15, 23, 42, 0.55);
+  margin-bottom: 8px;
+}
+
+.skill-chip {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.skill-name {
+  font-weight: 600;
+}
+
+.skill-years {
+  margin-left: 8px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.6);
+}
+

@@ -1,0 +1,90 @@
+<div class="dash">
+  <header class="dash-hd">
+    <div>
+      <div class="eyebrow">Company Dashboard</div>
+      <h1 class="title">Student Directory</h1>
+      <p class="subtitle">Search, filter, and shortlist students by skill and experience.</p>
+    </div>
+  </header>
+
+  <mat-card class="filters" appearance="outlined">
+    <mat-card-content>
+      <form class="filters-form" [formGroup]="filters" autocomplete="off">
+        <div class="filters-grid">
+          <mat-form-field appearance="outline" class="q">
+            <mat-label>Search</mat-label>
+            <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+            <input matInput formControlName="query" placeholder="Name, email, location, skill..." />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Skills</mat-label>
+            <mat-select formControlName="skills" multiple>
+              <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
+            </mat-select>
+            <mat-hint>Configure years per skill below</mat-hint>
+          </mat-form-field>
+
+          <div class="actions">
+            <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+          </div>
+        </div>
+
+        <div class="reqs" *ngIf="requirements.controls.length > 0" formArrayName="requirements">
+          <div class="reqs-hd">Minimum Years of Experience (per skill)</div>
+          <div class="reqs-grid">
+            <div class="req-row" *ngFor="let g of requirements.controls; let i = index" [formGroupName]="i">
+              <div class="req-skill">
+                <span class="req-pill">{{ g.controls.skillName.value }}</span>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="req-rm"
+                  (click)="removeSkillFilter(g.controls.skillName.value)"
+                  aria-label="Remove skill filter"
+                >
+                  <mat-icon aria-hidden="true">close</mat-icon>
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Min Years</mat-label>
+                <input matInput type="number" min="0" max="50" formControlName="minYears" />
+                <mat-hint>0 = any</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <section class="results">
+    <div class="results-bar">
+      <div class="results-count">
+        <mat-icon aria-hidden="true">group</mat-icon>
+        <span>{{ ((filteredStudents$ | async) ?? []).length }} students</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="filteredStudents$ | async as students; else loading">
+      <div class="grid" *ngIf="students.length > 0; else empty">
+        <app-student-card *ngFor="let s of students; trackBy: trackStudent" [student]="s"></app-student-card>
+      </div>
+    </ng-container>
+
+    <ng-template #loading>
+      <div class="state">
+        <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+        <div class="state-txt">Loading directory…</div>
+      </div>
+    </ng-template>
+
+    <ng-template #empty>
+      <div class="state">
+        <mat-icon class="state-ic" aria-hidden="true">search_off</mat-icon>
+        <div class="state-txt">No students match the current filters.</div>
+      </div>
+    </ng-template>
+  </section>
+</div>
