@@ -2,8 +2,8 @@
   <header class="topbar">
     <a class="brand" routerLink="/home">DnevnicaMK</a>
     <nav>
-      <a routerLink="/login">Login</a>
-      <a routerLink="/register">Register</a>
+      <a *ngIf="!isLoggedIn()" routerLink="/login">Login</a>
+      <a *ngIf="!isLoggedIn()" routerLink="/register">Register</a>
       <button *ngIf="isLoggedIn()" (click)="logout()">Logout</button>
     </nav>
   </header>
