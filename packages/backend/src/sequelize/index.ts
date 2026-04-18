@@ -1,4 +1,6 @@
 import {Sequelize} from "sequelize-typescript";
+import {Role} from "./models/Role";
+import {User} from "./models/User";
 
 require('dotenv').config(); //must be on top, above imported services
 
@@ -11,7 +13,8 @@ const sequelizeConnection = new Sequelize({
     username: process.env["DB_USER"]!,
     password: process.env["DB_PASSWORD"]!,
     models: [
-    //    TODO THIS NEED TO BE IMPLEMENTED
+        Role,
+        User
     ],
     dialectOptions: {
         connectTimeout: 15000

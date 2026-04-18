@@ -1,1 +1,14 @@
-FRONTEND WORKS!
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/home">DnevnicaMK</a>
+    <nav>
+      <a *ngIf="!isLoggedIn()" routerLink="/login">Login</a>
+      <a *ngIf="!isLoggedIn()" routerLink="/register">Register</a>
+      <button *ngIf="isLoggedIn()" (click)="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
