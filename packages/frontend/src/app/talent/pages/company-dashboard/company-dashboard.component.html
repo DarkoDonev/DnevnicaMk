@@ -69,7 +69,14 @@
 
     <ng-container *ngIf="filteredStudents$ | async as students; else loading">
       <div class="grid" *ngIf="students.length > 0; else empty">
-        <app-student-card *ngFor="let s of students; trackBy: trackStudent" [student]="s"></app-student-card>
+        <app-student-card
+          *ngFor="let s of students; trackBy: trackStudent"
+          [student]="s"
+          [showEvaluationActions]="true"
+          [analyzeLoading]="isAnalyzing(s.id)"
+          (analyzeRequested)="runEvaluation($event)"
+          (detailsRequested)="viewEvaluationDetails($event)"
+        ></app-student-card>
       </div>
     </ng-container>
 

@@ -5,7 +5,9 @@ import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Subject, takeUntil} from 'rxjs';
 
-import {AuthService, UserRole} from '../../services/auth.service';
+import {AuthService} from '../../services/auth.service';
+
+type RegisterRole = 'student' | 'company';
 
 @Component({
   selector: 'app-register',
@@ -17,7 +19,7 @@ export class RegisterComponent implements OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   readonly form = this.fb.group({
-    role: this.fb.control<UserRole>('student', {validators: [Validators.required]}),
+    role: this.fb.control<RegisterRole>('student', {validators: [Validators.required]}),
 
     // shared
     email: this.fb.control('', {validators: [Validators.required, Validators.email]}),
@@ -55,7 +57,7 @@ export class RegisterComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  private setRoleValidators(role: UserRole): void {
+  private setRoleValidators(role: RegisterRole): void {
     if (role === 'student') {
       this.form.controls.studentName.setValidators([Validators.required, Validators.minLength(2)]);
       this.form.controls.companyName.clearValidators();
@@ -74,40 +76,55 @@ export class RegisterComponent implements OnDestroy {
     const v = this.form.getRawValue();
     const role = v.role;
 
-    const req$ =
-      role === 'student'
-        ? this.auth.registerStudent({
-            email: v.email,
-            password: v.password,
-            name: v.studentName,
-            headline: v.headline || undefined,
-            phone: v.phone || undefined,
-            location: v.location || undefined,
-            linkedInUrl: v.linkedInUrl || undefined,
-            githubUrl: v.githubUrl || undefined,
-            bio: v.bio || undefined,
-          })
-        : this.auth.registerCompany({
-            email: v.email,
-            password: v.password,
-            name: v.companyName,
-            location: v.companyLocation || undefined,
-            websiteUrl: v.websiteUrl || undefined,
-          });
+    if (role === 'student') {
+      this.auth
+        .registerStudent({
+          email: v.email,
+          password: v.password,
+          name: v.studentName,
+          headline: v.headline || undefined,
+          phone: v.phone || undefined,
+          location: v.location || undefined,
+          linkedInUrl: v.linkedInUrl || undefined,
+          githubUrl: v.githubUrl || undefined,
+          bio: v.bio || undefined,
+        })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => void this.router.navigateByUrl('/student/profile'),
+          error: (err: unknown) => this.handleRegistrationError(err),
+          complete: () => (this.isSubmitting = false),
+        });
+      return;
+    }
 
-    req$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (state) => void this.router.navigateByUrl(state.role === 'company' ? '/company/students' : '/student/profile'),
-      error: (err: unknown) => {
-        const msg =
-          err instanceof HttpErrorResponse
-            ? (err.error?.message ?? err.error?.error ?? 'Registration failed.')
-            : err instanceof Error
-              ? err.message
-              : 'Registration failed.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
-        this.isSubmitting = false;
-      },
-      complete: () => (this.isSubmitting = false),
-    });
+    this.auth
+      .registerCompany({
+        email: v.email,
+        password: v.password,
+        name: v.companyName,
+        location: v.companyLocation || undefined,
+        websiteUrl: v.websiteUrl || undefined,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.snackBar.open(result.message, 'Dismiss', {duration: 4500});
+          void this.router.navigateByUrl('/register/company-pending');
+        },
+        error: (err: unknown) => this.handleRegistrationError(err),
+        complete: () => (this.isSubmitting = false),
+      });
+  }
+
+  private handleRegistrationError(err: unknown): void {
+    const msg =
+      err instanceof HttpErrorResponse
+        ? (err.error?.message ?? err.error?.error ?? 'Registration failed.')
+        : err instanceof Error
+          ? err.message
+          : 'Registration failed.';
+    this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+    this.isSubmitting = false;
   }
 }

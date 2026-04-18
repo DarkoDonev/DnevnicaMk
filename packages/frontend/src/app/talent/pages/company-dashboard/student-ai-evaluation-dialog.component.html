@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>AI Evaluation: {{ data.studentName }}</h2>
+
+<mat-dialog-content class="dialog-body">
+  <div class="status-row">
+    <span class="status-pill" [ngClass]="'st-' + data.evaluation.status">{{ statusLabel }}</span>
+    <span class="date-txt">Last analyzed: {{ formatDate(data.evaluation.lastAnalyzedAt) }}</span>
+  </div>
+
+  <div class="error-box" *ngIf="data.evaluation.lastError">{{ data.evaluation.lastError }}</div>
+
+  <section class="section" *ngIf="data.evaluation.summaryMk">
+    <div class="section-title">Summary</div>
+    <p class="summary">{{ data.evaluation.summaryMk }}</p>
+  </section>
+
+  <section class="section" *ngIf="data.evaluation.scores.overall !== null">
+    <div class="section-title">Scores</div>
+    <div class="scores-grid">
+      <div class="score-item">
+        <div class="score-k">Overall</div>
+        <div class="score-v">{{ data.evaluation.scores.overall }}/100</div>
+      </div>
+      <div class="score-item">
+        <div class="score-k">Code Quality</div>
+        <div class="score-v">{{ data.evaluation.scores.codeQuality }}/100</div>
+      </div>
+      <div class="score-item">
+        <div class="score-k">Consistency</div>
+        <div class="score-v">{{ data.evaluation.scores.consistency }}/100</div>
+      </div>
+      <div class="score-item">
+        <div class="score-k">Activity</div>
+        <div class="score-v">{{ data.evaluation.scores.activity }}/100</div>
+      </div>
+      <div class="score-item">
+        <div class="score-k">Documentation</div>
+        <div class="score-v">{{ data.evaluation.scores.documentation }}/100</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" *ngIf="data.evaluation.metrics as metrics">
+    <div class="section-title">Metrics ({{ metrics.commitWindowDays }} days)</div>
+    <div class="metrics-grid">
+      <div><strong>Commits:</strong> {{ metrics.commitCount }}</div>
+      <div><strong>Active weeks:</strong> {{ metrics.activeWeeks }}</div>
+      <div><strong>Avg / week:</strong> {{ metrics.averageCommitsPerWeek }}</div>
+      <div><strong>Repos analyzed:</strong> {{ metrics.repositoriesAnalyzed }}</div>
+      <div><strong>Active repos:</strong> {{ metrics.repositoriesWithRecentCommits }}</div>
+      <div><strong>Activity spread:</strong> {{ formatPercent(metrics.activitySpread) }}</div>
+      <div><strong>README coverage:</strong> {{ formatPercent(metrics.readmeCoverage) }}</div>
+      <div><strong>Test coverage:</strong> {{ formatPercent(metrics.testCoverage) }}</div>
+    </div>
+
+    <div class="lang-row" *ngIf="metrics.languageMix.length > 0">
+      <div class="lang-title">Language mix</div>
+      <div class="lang-list">
+        <span class="lang-pill" *ngFor="let lang of metrics.languageMix">{{ lang.language }} ({{ lang.percentage }}%)</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" *ngIf="data.evaluation.reposAnalyzed.length > 0">
+    <div class="section-title">Repositories</div>
+    <div class="repo-list">
+      <div class="repo-item" *ngFor="let repo of data.evaluation.reposAnalyzed">
+        <a [href]="repo.htmlUrl" target="_blank" rel="noreferrer">{{ repo.fullName }}</a>
+        <div class="repo-meta">
+          <span>{{ repo.primaryLanguage || 'N/A' }}</span>
+          <span>Commits: {{ repo.commitsInWindow }}</span>
+          <span>Stars: {{ repo.stars }}</span>
+          <span>README: {{ repo.hasReadme ? 'Yes' : 'No' }}</span>
+          <span>Tests: {{ repo.hasTests ? 'Yes' : 'No' }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" *ngIf="data.evaluation.strengths.length > 0">
+    <div class="section-title">Strengths</div>
+    <ul class="plain-list">
+      <li *ngFor="let item of data.evaluation.strengths">{{ item }}</li>
+    </ul>
+  </section>
+
+  <section class="section" *ngIf="data.evaluation.improvements.length > 0">
+    <div class="section-title">Improvements</div>
+    <ul class="plain-list">
+      <li *ngFor="let item of data.evaluation.improvements">{{ item }}</li>
+    </ul>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

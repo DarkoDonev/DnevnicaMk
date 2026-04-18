@@ -3,10 +3,16 @@ import {RouterModule, Routes} from '@angular/router';
 import {LoginComponent} from './talent/pages/login/login.component';
 import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
+import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
+import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentJobsComponent} from './talent/pages/student-jobs/student-jobs.component';
 import {authRoleGuard} from './talent/guards/auth-role.guard';
+import {authGuard} from './talent/guards/auth.guard';
+import {CompanyRegistrationPendingComponent} from './talent/pages/company-registration-pending/company-registration-pending.component';
+import {AdminCompanyApprovalsComponent} from './talent/pages/admin-company-approvals/admin-company-approvals.component';
+import {EventsPageComponent} from './talent/pages/events-page/events-page.component';
 
 const routes: Routes = [
   {
@@ -19,15 +25,25 @@ const routes: Routes = [
     component: LoginComponent,
   },
   {
+    path: 'register/company-pending',
+    component: CompanyRegistrationPendingComponent,
+  },
+  {
     path: 'register',
     component: RegisterComponent,
+  },
+  {
+    path: 'events',
+    canActivate: [authGuard],
+    component: EventsPageComponent,
   },
   {
     path: 'company',
     canActivate: [authRoleGuard],
     data: {role: 'company'},
     children: [
-      {path: '', pathMatch: 'full', redirectTo: 'students'},
+      {path: '', pathMatch: 'full', redirectTo: 'profile'},
+      {path: 'profile', component: CompanyProfileComponent},
       {path: 'students', component: CompanyDashboardComponent},
       {path: 'jobs', component: CompanyJobsComponent},
     ],
@@ -40,6 +56,16 @@ const routes: Routes = [
       {path: '', pathMatch: 'full', redirectTo: 'profile'},
       {path: 'profile', component: StudentProfileComponent},
       {path: 'jobs', component: StudentJobsComponent},
+      {path: 'applications', component: StudentApplicationsComponent},
+    ],
+  },
+  {
+    path: 'admin',
+    canActivate: [authRoleGuard],
+    data: {role: 'admin'},
+    children: [
+      {path: '', pathMatch: 'full', redirectTo: 'company-approvals'},
+      {path: 'company-approvals', component: AdminCompanyApprovalsComponent},
     ],
   },
   {

@@ -1,0 +1,55 @@
+<div class="approvals-page">
+  <section class="header">
+    <h1>Company Approval Queue</h1>
+    <p>Review company registrations and decide whether they can access the platform.</p>
+
+    <mat-button-toggle-group [formControl]="statusControl" aria-label="Status filter">
+      <mat-button-toggle *ngFor="let status of statuses" [value]="status">
+        {{ status | titlecase }}
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+  </section>
+
+  <section class="list" *ngIf="approvals$ | async as approvals">
+    <ng-container *ngIf="approvals.length > 0; else empty">
+      <mat-card class="approval-card" appearance="outlined" *ngFor="let item of approvals; trackBy: trackByCompanyId">
+        <mat-card-header>
+          <mat-card-title>{{ item.name }}</mat-card-title>
+          <mat-card-subtitle>{{ item.companyEmail }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content class="details">
+          <div><strong>Status:</strong> {{ item.registrationStatus | titlecase }}</div>
+          <div><strong>Location:</strong> {{ item.location }}</div>
+          <div><strong>Website:</strong> {{ item.websiteUrl || 'N/A' }}</div>
+          <div><strong>Requested:</strong> {{ item.createdAtIso | date: 'medium' }}</div>
+          <div *ngIf="item.reviewedAtIso"><strong>Reviewed:</strong> {{ item.reviewedAtIso | date: 'medium' }}</div>
+          <div *ngIf="item.reviewNote"><strong>Review Note:</strong> {{ item.reviewNote }}</div>
+        </mat-card-content>
+
+        <mat-card-actions class="actions" *ngIf="item.registrationStatus === 'pending'">
+          <mat-form-field appearance="outline" class="note-field">
+            <mat-label>Optional admin note</mat-label>
+            <textarea
+              matInput
+              rows="2"
+              [value]="noteByCompanyId[item.id] ?? ''"
+              (input)="onNoteInput(item.id, $any($event.target).value)"
+            ></textarea>
+          </mat-form-field>
+
+          <div class="buttons">
+            <button mat-flat-button color="primary" [disabled]="isActing(item.id)" (click)="approve(item)">Approve</button>
+            <button mat-stroked-button color="warn" [disabled]="isActing(item.id)" (click)="reject(item)">Reject</button>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+    </ng-container>
+  </section>
+
+  <ng-template #empty>
+    <mat-card appearance="outlined">
+      <mat-card-content>No companies found for the selected status.</mat-card-content>
+    </mat-card>
+  </ng-template>
+</div>

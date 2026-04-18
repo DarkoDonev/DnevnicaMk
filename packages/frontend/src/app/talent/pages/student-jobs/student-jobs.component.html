@@ -31,6 +31,14 @@
           </mat-select>
         </mat-form-field>
 
+        <div class="type-filter">
+          <div class="type-filter-hd">Type</div>
+          <div class="type-filter-grid">
+            <mat-checkbox formControlName="includeJobs">Work</mat-checkbox>
+            <mat-checkbox formControlName="includeInternships">Internship</mat-checkbox>
+          </div>
+        </div>
+
         <div class="actions">
           <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
         </div>
@@ -42,13 +50,21 @@
     <div class="results-bar">
       <div class="results-count">
         <mat-icon aria-hidden="true">work</mat-icon>
-        <span>{{ ((filteredJobs$ | async) ?? []).length }} jobs</span>
+        <span>{{ ((jobsVm$ | async)?.jobs ?? []).length }} jobs</span>
       </div>
     </div>
 
-    <ng-container *ngIf="filteredJobs$ | async as jobs; else loading">
-      <div class="grid" *ngIf="jobs.length > 0; else empty">
-        <app-job-card *ngFor="let j of jobs; trackBy: trackJob" [job]="j"></app-job-card>
+    <ng-container *ngIf="jobsVm$ | async as vm; else loading">
+      <div class="grid" *ngIf="vm.jobs.length > 0; else empty">
+        <app-job-card
+          *ngFor="let j of vm.jobs; trackBy: trackJob"
+          [job]="j"
+          [showApplyAction]="true"
+          [applyLoading]="applyingJobId === j.id"
+          [applyDisabled]="!!vm.applicationByJobId.get(j.id) || applyingJobId !== null"
+          [applyStatusLabel]="vm.applicationByJobId.get(j.id) ? statusLabel(vm.applicationByJobId.get(j.id)!.status) : null"
+          (applyClick)="applyToJob(j.id, !!vm.applicationByJobId.get(j.id))"
+        ></app-job-card>
       </div>
     </ng-container>
 

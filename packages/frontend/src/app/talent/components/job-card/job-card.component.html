@@ -10,6 +10,8 @@
       <span class="loc">{{ job.location }}</span>
       <span class="dot" aria-hidden="true">•</span>
       <span class="mode">{{ job.workMode }}</span>
+      <span class="dot" aria-hidden="true">•</span>
+      <span class="type">{{ listingTypeLabel }}</span>
     </mat-card-subtitle>
   </mat-card-header>
 
@@ -27,8 +29,19 @@
     </div>
   </mat-card-content>
 
-  <mat-card-actions align="end">
+<mat-card-actions align="end">
+    <span class="apply-status" *ngIf="showApplyAction && applyStatusLabel">{{ applyStatusLabel }}</span>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      *ngIf="showApplyAction"
+      [disabled]="applyDisabled || applyLoading"
+      (click)="onApply()"
+    >
+      <mat-icon aria-hidden="true">{{ applyLoading ? 'hourglass_top' : 'send' }}</mat-icon>
+      <span>{{ applyLoading ? 'Applying...' : applyStatusLabel ? 'Applied' : 'Apply' }}</span>
+    </button>
     <div class="posted" *ngIf="postedAtLabel">Posted {{ postedAtLabel }}</div>
   </mat-card-actions>
 </mat-card>
-

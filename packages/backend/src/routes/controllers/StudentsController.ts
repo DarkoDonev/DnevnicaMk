@@ -10,16 +10,18 @@ import {
   Param,
   Put,
 } from 'routing-controllers';
-import {IsInt, IsOptional, IsString, Max, Min, MinLength} from 'class-validator';
+import {IsBoolean, IsInt, IsOptional, IsString, Max, Min, MinLength} from 'class-validator';
 import {UploadedFile} from 'routing-controllers';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
 import {Student} from '../../sequelize/models/Student';
+import {StudentGithubEvaluation} from '../../sequelize/models/StudentGithubEvaluation';
 import {StudentSkill} from '../../sequelize/models/StudentSkill';
 import {TechSkill} from '../../sequelize/models/TechSkill';
 import {User} from '../../sequelize/models/User';
+import {StudentGithubEvaluationService} from '../../services/StudentGithubEvaluationService';
 import {safeFilename} from '../../utils/safe-filename';
 
 class UpsertSkillBody {
@@ -60,10 +62,20 @@ class UpdateMeBody {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  seekingJob?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  seekingInternship?: boolean;
 }
 
 @JsonController('/api/students')
 export class StudentsController {
+  private readonly evaluation = new StudentGithubEvaluationService();
+
   // Company directory
   @Authorized('company')
   @Get('')
@@ -75,6 +87,10 @@ export class StudentsController {
           model: StudentSkill,
           attributes: ['yearsOfExperience'],
           include: [{model: TechSkill, attributes: ['name']}],
+        },
+        {
+          model: StudentGithubEvaluation,
+          attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt'],
         },
       ],
       order: [['name', 'ASC']],
@@ -93,7 +109,10 @@ export class StudentsController {
           githubUrl: s.githubUrl ?? undefined,
         },
         bio: s.bio ?? undefined,
+        seekingJob: !!s.seekingJob,
+        seekingInternship: !!s.seekingInternship,
         cvUrl: s.cvPath ? `/static/${s.cvPath}` : undefined,
+        aiEvaluationPreview: this.evaluation.previewFromRecord((s as any).githubEvaluation),
         skills: (s.studentSkills ?? []).map((ss) => ({
           skillName: (ss.techSkill as any)?.name ?? '',
           yearsOfExperience: ss.yearsOfExperience,
@@ -115,6 +134,10 @@ export class StudentsController {
           attributes: ['yearsOfExperience'],
           include: [{model: TechSkill, attributes: ['name']}],
         },
+        {
+          model: StudentGithubEvaluation,
+          attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt'],
+        },
       ],
     });
 
@@ -133,7 +156,10 @@ export class StudentsController {
           githubUrl: student.githubUrl ?? undefined,
         },
         bio: student.bio ?? undefined,
+        seekingJob: !!student.seekingJob,
+        seekingInternship: !!student.seekingInternship,
         cvUrl: student.cvPath ? `/static/${student.cvPath}` : undefined,
+        aiEvaluationPreview: this.evaluation.previewFromRecord((student as any).githubEvaluation),
         skills: (student.studentSkills ?? []).map((ss) => ({
           skillName: (ss.techSkill as any)?.name ?? '',
           yearsOfExperience: ss.yearsOfExperience,
@@ -155,6 +181,12 @@ export class StudentsController {
     student.linkedInUrl = body.linkedInUrl?.trim() || null;
     student.githubUrl = body.githubUrl?.trim() || null;
     student.bio = body.bio?.trim() || null;
+    if (typeof body.seekingJob === 'boolean') {
+      student.seekingJob = body.seekingJob;
+    }
+    if (typeof body.seekingInternship === 'boolean') {
+      student.seekingInternship = body.seekingInternship;
+    }
     await student.save();
 
     return this.me(user);

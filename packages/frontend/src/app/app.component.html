@@ -1,38 +1,51 @@
 <div class="app-shell">
   <mat-toolbar class="app-toolbar" color="primary">
     <ng-container *ngIf="authState$ | async as auth">
-      <div
-        class="brand"
-        [routerLink]="auth.role === 'company' ? '/company/students' : auth.role === 'student' ? '/student/profile' : '/login'"
-        tabindex="0"
-        role="link"
-        aria-label="TalentBridge home"
-      >
+      <div class="brand" [routerLink]="homeRoute(auth.role)" tabindex="0" role="link" aria-label="DnevnicaMK home">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">TalentBridge</span>
+        <span class="brand-name">DnevnicaMK</span>
       </div>
 
       <nav class="nav" *ngIf="auth.role" aria-label="Primary navigation">
-        <ng-container *ngIf="auth.role === 'company'; else studentNav">
-          <a mat-button routerLink="/company/students" routerLinkActive="active">Students</a>
-          <a mat-button routerLink="/company/jobs" routerLinkActive="active">Post Jobs</a>
+        <ng-container [ngSwitch]="auth.role">
+          <ng-container *ngSwitchCase="'company'">
+            <a mat-button routerLink="/company/jobs" routerLinkActive="active">Post Jobs</a>
+            <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
+          </ng-container>
+          <ng-container *ngSwitchCase="'student'">
+            <a mat-button routerLink="/student/jobs" routerLinkActive="active">Jobs</a>
+            <a mat-button routerLink="/student/applications" routerLinkActive="active">Applications</a>
+            <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
+          </ng-container>
+          <ng-container *ngSwitchCase="'admin'">
+            <a mat-button routerLink="/admin/company-approvals" routerLinkActive="active">Company Approvals</a>
+          </ng-container>
         </ng-container>
-        <ng-template #studentNav>
-          <a mat-button routerLink="/student/profile" routerLinkActive="active">Profile</a>
-          <a mat-button routerLink="/student/jobs" routerLinkActive="active">Jobs</a>
-        </ng-template>
       </nav>
 
       <span class="spacer"></span>
 
-      <span class="who" *ngIf="auth.email">
+      <a
+        mat-button
+        class="profile-tab"
+        *ngIf="auth.role === 'student' || auth.role === 'company'"
+        [routerLink]="auth.role === 'company' ? '/company/profile' : '/student/profile'"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+      >
+        <mat-icon aria-hidden="true">{{ auth.role === 'company' ? 'apartment' : 'school' }}</mat-icon>
+        <span>{{ auth.role === 'company' ? (auth.companyName ?? auth.email ?? 'Company') : (auth.studentName ?? auth.email ?? 'Student') }}</span>
+      </a>
+
+      <span class="who" *ngIf="(auth.role === 'company' || auth.role === 'admin') && auth.email">
         {{ auth.companyName ?? auth.email }}
       </span>
 
       <span class="role-pill" *ngIf="auth.role">
-        <mat-icon aria-hidden="true">{{ auth.role === 'company' ? 'apartment' : 'school' }}</mat-icon>
-        <span>{{ auth.role === 'company' ? 'Company' : 'Student' }}</span>
+        <mat-icon aria-hidden="true">{{ roleIcon(auth.role) }}</mat-icon>
+        <span>{{ roleLabel(auth.role) }}</span>
       </span>
+
       <button mat-button type="button" *ngIf="auth.role" (click)="logout()">Logout</button>
     </ng-container>
   </mat-toolbar>

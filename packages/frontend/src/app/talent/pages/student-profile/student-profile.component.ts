@@ -2,11 +2,11 @@ import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
 import {NonNullableFormBuilder, Validators} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
-import {map, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
+import {catchError, map, of, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
 
 import {StudentDirectoryService} from '../../services/student-directory.service';
 import {AuthService} from '../../services/auth.service';
-import {Student} from '../../models';
+import {Student, StudentAiEvaluationDetails} from '../../models';
 import {TechSkillsService} from '../../services/tech-skills.service';
 import {environment} from '../../../../environments/environment';
 
@@ -31,6 +31,12 @@ export class StudentProfileComponent implements OnDestroy {
     shareReplay({bufferSize: 1, refCount: true}),
   );
 
+  readonly evaluation$ = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() => this.directory.getMyEvaluation().pipe(catchError(() => of(null)))),
+    shareReplay({bufferSize: 1, refCount: true}),
+  );
+
   readonly profileForm = this.fb.group({
     name: this.fb.control('', {validators: [Validators.required, Validators.minLength(2)]}),
     headline: this.fb.control(''),
@@ -39,6 +45,8 @@ export class StudentProfileComponent implements OnDestroy {
     linkedInUrl: this.fb.control(''),
     githubUrl: this.fb.control(''),
     bio: this.fb.control(''),
+    seekingJob: this.fb.control(false),
+    seekingInternship: this.fb.control(false),
   });
 
   readonly addSkillForm = this.fb.group({
@@ -103,6 +111,8 @@ export class StudentProfileComponent implements OnDestroy {
         linkedInUrl: v.linkedInUrl || undefined,
         githubUrl: v.githubUrl || undefined,
         bio: v.bio || undefined,
+        seekingJob: v.seekingJob,
+        seekingInternship: v.seekingInternship,
       })
       .subscribe({
         next: () => {
@@ -179,6 +189,8 @@ export class StudentProfileComponent implements OnDestroy {
         linkedInUrl: student.contact.linkedInUrl ?? '',
         githubUrl: student.contact.githubUrl ?? '',
         bio: student.bio ?? '',
+        seekingJob: student.seekingJob ?? false,
+        seekingInternship: student.seekingInternship ?? false,
       },
       {emitEvent: false},
     );
@@ -190,5 +202,31 @@ export class StudentProfileComponent implements OnDestroy {
     const api = environment.apiUrl;
     const base = api.endsWith('/api') ? api.slice(0, -4) : api;
     return `${base}${cvUrl}`;
+  }
+
+  evaluationStatusLabel(evaluation: StudentAiEvaluationDetails | null): string {
+    switch (evaluation?.status) {
+      case 'ready':
+        return 'Ready';
+      case 'pending':
+        return 'Running';
+      case 'failed':
+        return 'Failed';
+      case 'none':
+      default:
+        return 'Not analyzed';
+    }
+  }
+
+  formatIsoDate(iso: string | null): string {
+    if (!iso) return 'N/A';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleString();
+  }
+
+  asPercent(v: number | null | undefined): string {
+    if (v === null || v === undefined) return 'N/A';
+    return `${Math.round(v * 100)}%`;
   }
 }

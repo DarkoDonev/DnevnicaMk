@@ -1,0 +1,50 @@
+.pending-shell {
+  min-height: calc(100vh - var(--app-toolbar-h));
+  padding: 42px 18px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(760px 440px at 50% 0%, rgba(59, 130, 246, 0.12), transparent 65%),
+    radial-gradient(680px 420px at 10% 100%, rgba(34, 197, 94, 0.11), transparent 60%),
+    #f7fafc;
+}
+
+.pending-card {
+  width: min(700px, 100%);
+  border-radius: 20px;
+}
+
+.content {
+  margin-top: 8px;
+  display: grid;
+  gap: 12px;
+}
+
+.contact {
+  display: grid;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.line span {
+  font-weight: 600;
+}
+
+.line a {
+  color: #0f3ea3;
+  text-decoration: none;
+}
+
+.line a:hover {
+  text-decoration: underline;
+}

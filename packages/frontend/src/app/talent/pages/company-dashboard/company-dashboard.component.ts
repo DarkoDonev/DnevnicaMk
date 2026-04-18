@@ -1,10 +1,14 @@
 import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {FormArray, FormControl, FormGroup, NonNullableFormBuilder} from '@angular/forms';
-import {combineLatest, map, shareReplay, startWith, Subject, takeUntil} from 'rxjs';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {combineLatest, map, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
 
 import {Student} from '../../models';
 import {StudentDirectoryService} from '../../services/student-directory.service';
 import {TechSkillsService} from '../../services/tech-skills.service';
+import {StudentAiEvaluationDialogComponent} from './student-ai-evaluation-dialog.component';
 
 interface SkillRequirementFilter {
   skillName: string;
@@ -29,7 +33,9 @@ interface FiltersValue {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompanyDashboardComponent implements OnDestroy {
+  private readonly reload$ = new Subject<void>();
   private readonly destroy$ = new Subject<void>();
+  private readonly analyzingStudentIds = new Set<number>();
 
   readonly skills$ = this.skillService.getSkills().pipe(
     map((r) => r.data),
@@ -44,7 +50,11 @@ export class CompanyDashboardComponent implements OnDestroy {
     requirements: this.requirements,
   });
 
-  readonly students$ = this.directory.getStudents().pipe(shareReplay({bufferSize: 1, refCount: true}));
+  readonly students$ = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() => this.directory.getStudents()),
+    shareReplay({bufferSize: 1, refCount: true}),
+  );
 
   readonly filteredStudents$ = combineLatest([
     this.students$,
@@ -58,6 +68,8 @@ export class CompanyDashboardComponent implements OnDestroy {
     private readonly fb: NonNullableFormBuilder,
     private readonly directory: StudentDirectoryService,
     private readonly skillService: TechSkillsService,
+    private readonly snackBar: MatSnackBar,
+    private readonly dialog: MatDialog,
   ) {
     this.filters.controls.skills.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((skills) => {
       this.syncRequirementsWithSkills((skills ?? []).filter(Boolean));
@@ -65,11 +77,16 @@ export class CompanyDashboardComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.reload$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   trackStudent = (_: number, s: Student) => s.id;
+
+  isAnalyzing(studentId: number): boolean {
+    return this.analyzingStudentIds.has(studentId);
+  }
 
   clearFilters(): void {
     this.filters.controls.query.setValue('');
@@ -80,6 +97,47 @@ export class CompanyDashboardComponent implements OnDestroy {
   removeSkillFilter(skill: string): void {
     const current = this.filters.controls.skills.value ?? [];
     this.filters.controls.skills.setValue(current.filter((s) => s !== skill));
+  }
+
+  runEvaluation(student: Student): void {
+    if (this.analyzingStudentIds.has(student.id)) return;
+
+    this.analyzingStudentIds.add(student.id);
+    this.directory.runStudentEvaluation(student.id).subscribe({
+      next: (result) => {
+        const msg =
+          result.status === 'ready'
+            ? result.fromCache
+              ? `Used cached AI evaluation for ${student.name}.`
+              : `AI evaluation updated for ${student.name}.`
+            : `AI evaluation failed for ${student.name}.`;
+        this.snackBar.open(msg, 'Dismiss', {duration: 3200});
+        this.analyzingStudentIds.delete(student.id);
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        this.snackBar.open(this.toErrorMessage(err, 'Could not run AI evaluation.'), 'Dismiss', {duration: 3500});
+        this.analyzingStudentIds.delete(student.id);
+      },
+    });
+  }
+
+  viewEvaluationDetails(student: Student): void {
+    this.directory.getStudentEvaluation(student.id).subscribe({
+      next: (evaluation) => {
+        this.dialog.open(StudentAiEvaluationDialogComponent, {
+          width: '860px',
+          maxWidth: '96vw',
+          data: {
+            studentName: student.name,
+            evaluation,
+          },
+        });
+      },
+      error: (err: unknown) => {
+        this.snackBar.open(this.toErrorMessage(err, 'Could not load AI evaluation details.'), 'Dismiss', {duration: 3500});
+      },
+    });
   }
 
   private applyFilters(students: readonly Student[], filters: FiltersValue): readonly Student[] {
@@ -150,5 +208,15 @@ export class CompanyDashboardComponent implements OnDestroy {
       skillName: this.fb.control(skillName),
       minYears: this.fb.control(Math.max(0, Number(minYears ?? 0))),
     });
+  }
+
+  private toErrorMessage(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse && typeof err.error?.message === 'string') {
+      return err.error.message;
+    }
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+    return fallback;
   }
 }

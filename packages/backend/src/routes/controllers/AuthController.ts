@@ -1,11 +1,15 @@
 import {Authorized, BadRequestError, Body, CurrentUser, Get, JsonController, Post, UnauthorizedError} from 'routing-controllers';
 import {IsEmail, IsIn, IsOptional, IsString, MinLength} from 'class-validator';
 
-import {AuthService} from '../../services/AuthService';
+import {
+  AuthService,
+  COMPANY_LOGIN_PENDING_MESSAGE,
+  COMPANY_LOGIN_REJECTED_MESSAGE,
+} from '../../services/AuthService';
 import {UserRole} from '../../sequelize/models/User';
 
 class LoginBody {
-  @IsIn(['student', 'company'])
+  @IsIn(['student', 'company', 'admin'])
   role!: UserRole;
 
   @IsEmail()
@@ -83,6 +87,9 @@ export class AuthController {
     try {
       return await this.auth.login(body.role, body.email, body.password);
     } catch (e: any) {
+      if (e?.message === COMPANY_LOGIN_PENDING_MESSAGE || e?.message === COMPANY_LOGIN_REJECTED_MESSAGE) {
+        throw new UnauthorizedError(e.message);
+      }
       // Avoid account enumeration and keep a stable error message.
       throw new UnauthorizedError('Invalid email or password.');
     }
@@ -104,6 +111,16 @@ export class AuthController {
     } catch (e: any) {
       throw new BadRequestError(e?.message || 'Could not register.');
     }
+  }
+
+  @Get('/company-approval-contact')
+  companyApprovalContact() {
+    return {
+      data: {
+        email: process.env['ADMIN_APPROVAL_EMAIL'] || 'admin@dnevnicamk.local',
+        phone: process.env['ADMIN_APPROVAL_PHONE'] || '+389 70 000 000',
+      },
+    };
   }
 
   @Get('/me')

@@ -17,6 +17,7 @@ module.exports = {
   async up(queryInterface) {
     const now = new Date();
 
+    const adminPasswordHash = bcrypt.hashSync('admin123', 10);
     const companyPasswordHash = bcrypt.hashSync('company123', 10);
     const studentPasswordHash = bcrypt.hashSync('student123', 10);
 
@@ -24,6 +25,7 @@ module.exports = {
     await queryInterface.bulkInsert(
       'users',
       [
+        {email: 'admin@dnevnicamk.local', passwordHash: adminPasswordHash, role: 'admin', createdAt: now, updatedAt: now},
         {email: 'hr@nimbuslabs.com', passwordHash: companyPasswordHash, role: 'company', createdAt: now, updatedAt: now},
         {
           email: 'talent@blueoak.dev',
@@ -59,6 +61,7 @@ module.exports = {
 
     const sequelize = queryInterface.sequelize;
 
+    const adminUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'admin@dnevnicamk.local'});
     const nimbusUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'hr@nimbuslabs.com'});
     const blueoakUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'talent@blueoak.dev'});
     const elenaUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'elena.petrova@studentmail.com'});
@@ -69,8 +72,30 @@ module.exports = {
     await queryInterface.bulkInsert(
       'companies',
       [
-        {userId: nimbusUser.id, name: 'Nimbus Labs', location: 'Skopje, MK', websiteUrl: 'https://nimbuslabs.com', createdAt: now, updatedAt: now},
-        {userId: blueoakUser.id, name: 'BlueOak Software', location: 'Remote', websiteUrl: 'https://blueoak.dev', createdAt: now, updatedAt: now},
+        {
+          userId: nimbusUser.id,
+          name: 'Nimbus Labs',
+          location: 'Skopje, MK',
+          websiteUrl: 'https://nimbuslabs.com',
+          registrationStatus: 'approved',
+          reviewedAt: now,
+          reviewNote: 'Seeded demo company',
+          reviewedByUserId: adminUser.id,
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          userId: blueoakUser.id,
+          name: 'BlueOak Software',
+          location: 'Remote',
+          websiteUrl: 'https://blueoak.dev',
+          registrationStatus: 'approved',
+          reviewedAt: now,
+          reviewNote: 'Seeded demo company',
+          reviewedByUserId: adminUser.id,
+          createdAt: now,
+          updatedAt: now,
+        },
       ],
       {ignoreDuplicates: true},
     );
@@ -88,6 +113,8 @@ module.exports = {
           linkedInUrl: 'https://www.linkedin.com/in/elena-petrova',
           githubUrl: 'https://github.com/elenapetrova',
           bio: 'I build clean, accessible UIs and enjoy turning product requirements into intuitive flows.',
+          seekingJob: false,
+          seekingInternship: true,
           createdAt: now,
           updatedAt: now,
         },
@@ -100,6 +127,8 @@ module.exports = {
           linkedInUrl: 'https://www.linkedin.com/in/marko-iliev',
           githubUrl: 'https://github.com/markoiliev',
           bio: 'I like shipping end-to-end features: APIs, UI, and deployment.',
+          seekingJob: true,
+          seekingInternship: true,
           createdAt: now,
           updatedAt: now,
         },
@@ -112,6 +141,8 @@ module.exports = {
           linkedInUrl: 'https://www.linkedin.com/in/sara-nikolovska',
           githubUrl: 'https://github.com/saranikolovska',
           bio: 'I enjoy building reliable services and making data useful through thoughtful APIs.',
+          seekingJob: true,
+          seekingInternship: false,
           createdAt: now,
           updatedAt: now,
         },
@@ -171,6 +202,8 @@ module.exports = {
           title: 'Junior Frontend Intern (Angular)',
           location: 'Skopje, MK',
           workMode: 'Hybrid',
+          isJob: false,
+          isInternship: true,
           description:
             'Help build internal dashboards. You will work with Angular, TypeScript, and a component-driven design approach. Strong attention to UI details is a plus.',
           postedAt: daysAgo(4),
@@ -182,6 +215,8 @@ module.exports = {
           title: 'Student Full-stack Developer (Node.js + React)',
           location: 'Remote',
           workMode: 'Remote',
+          isJob: true,
+          isInternship: false,
           description:
             'Build features end-to-end: REST endpoints, UI screens, and deployment basics. Mentorship included. We value curiosity and shipping.',
           postedAt: daysAgo(10),
@@ -193,6 +228,8 @@ module.exports = {
           title: 'Data/Backend Intern (Python)',
           location: 'Skopje, MK',
           workMode: 'On-site',
+          isJob: false,
+          isInternship: true,
           description:
             'Assist with data pipelines and backend services. You will use Python, SQL, and Docker. Exposure to cloud (AWS) is a plus.',
           postedAt: daysAgo(2),
@@ -242,4 +279,3 @@ module.exports = {
     await queryInterface.bulkDelete('users', null, {});
   },
 };
-

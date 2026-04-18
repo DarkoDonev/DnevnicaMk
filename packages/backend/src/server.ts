@@ -10,6 +10,7 @@ import responseTime from "response-time";
 import morgan from "morgan";
 import moment from "moment";
 import helmet from 'helmet';
+import {Company} from './sequelize/models/Company';
 //Start the worker
 
 
@@ -67,8 +68,19 @@ useExpressServer(app, {
             const payload = jwt.verify(token, secret);
             (action.request as any).user = payload;
 
+            const role = (payload as any)?.role;
+            if (role === 'company') {
+                const userId = Number((payload as any)?.sub);
+                if (!Number.isFinite(userId) || userId <= 0) return false;
+
+                const company = await Company.findOne({
+                    where: {userId},
+                    attributes: ['registrationStatus'],
+                });
+                if (!company || company.registrationStatus !== 'approved') return false;
+            }
+
             if (roleNames?.length) {
-                const role = (payload as any)?.role;
                 return roleNames.includes(role);
             }
             return true;

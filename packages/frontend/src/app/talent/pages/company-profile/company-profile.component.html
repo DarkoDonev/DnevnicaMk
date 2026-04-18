@@ -1,0 +1,46 @@
+<div class="company-profile">
+  <header class="hd">
+    <div class="eyebrow">Company Profile</div>
+    <h1 class="title">Your Company Details</h1>
+    <p class="subtitle">Basic account profile for your company.</p>
+  </header>
+
+  <ng-container *ngIf="profile$ | async as profile; else loading">
+    <mat-card class="card" appearance="outlined">
+      <mat-card-content>
+        <div class="grid">
+          <div class="item">
+            <div class="k">Company Name</div>
+            <div class="v">{{ profile.name }}</div>
+          </div>
+          <div class="item">
+            <div class="k">Email</div>
+            <div class="v">{{ profile.email }}</div>
+          </div>
+          <div class="item">
+            <div class="k">Location</div>
+            <div class="v">{{ profile.location }}</div>
+          </div>
+          <div class="item">
+            <div class="k">Website</div>
+            <div class="v">
+              <a *ngIf="profile.websiteUrl" [href]="profile.websiteUrl" target="_blank" rel="noreferrer">{{ profile.websiteUrl }}</a>
+              <span *ngIf="!profile.websiteUrl">Not provided</span>
+            </div>
+          </div>
+          <div class="item">
+            <div class="k">Registration Status</div>
+            <div class="v status" [ngClass]="'st-' + profile.registrationStatus">{{ statusLabel(profile.registrationStatus) }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="state">
+      <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+      <div class="state-txt">Loading profile…</div>
+    </div>
+  </ng-template>
+</div>

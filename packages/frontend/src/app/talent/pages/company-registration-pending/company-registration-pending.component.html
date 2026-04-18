@@ -1,0 +1,32 @@
+<div class="pending-shell">
+  <mat-card class="pending-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Company Registration Pending Approval</mat-card-title>
+      <mat-card-subtitle>Your account will be activated by an admin after manual verification.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content class="content">
+      <p>
+        Your company details were submitted successfully. To continue, call or send an email to the admins and request
+        registration approval.
+      </p>
+
+      <div class="contact" *ngIf="contact$ | async as contact">
+        <div class="line">
+          <mat-icon aria-hidden="true">mail</mat-icon>
+          <span>Email:</span>
+          <a [href]="'mailto:' + contact.email">{{ contact.email }}</a>
+        </div>
+        <div class="line">
+          <mat-icon aria-hidden="true">call</mat-icon>
+          <span>Phone:</span>
+          <a [href]="'tel:' + contact.phone">{{ contact.phone }}</a>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <a mat-button routerLink="/login">Back to Login</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

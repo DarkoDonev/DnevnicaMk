@@ -18,12 +18,19 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {LoginComponent} from './talent/pages/login/login.component';
 import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
+import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
+import {StudentAiEvaluationDialogComponent} from './talent/pages/company-dashboard/student-ai-evaluation-dialog.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
+import {RejectApplicationDialogComponent} from './talent/pages/company-jobs/reject-application-dialog.component';
+import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
 import {StudentJobsComponent} from './talent/pages/student-jobs/student-jobs.component';
 import {StudentCardComponent} from './talent/components/student-card/student-card.component';
 import {JobCardComponent} from './talent/components/job-card/job-card.component';
 import {AuthTokenInterceptor} from './talent/interceptors/auth-token.interceptor';
+import {CompanyRegistrationPendingComponent} from './talent/pages/company-registration-pending/company-registration-pending.component';
+import {AdminCompanyApprovalsComponent} from './talent/pages/admin-company-approvals/admin-company-approvals.component';
+import {EventsPageComponent} from './talent/pages/events-page/events-page.component';
 
 @NgModule({
   declarations: [
@@ -31,11 +38,18 @@ import {AuthTokenInterceptor} from './talent/interceptors/auth-token.interceptor
     LoginComponent,
     RegisterComponent,
     CompanyDashboardComponent,
+    CompanyProfileComponent,
+    StudentAiEvaluationDialogComponent,
     CompanyJobsComponent,
+    RejectApplicationDialogComponent,
+    StudentApplicationsComponent,
     StudentProfileComponent,
     StudentJobsComponent,
     StudentCardComponent,
     JobCardComponent,
+    CompanyRegistrationPendingComponent,
+    AdminCompanyApprovalsComponent,
+    EventsPageComponent,
   ],
   imports: [
     BrowserModule,

@@ -74,6 +74,14 @@
                   <textarea matInput rows="4" formControlName="bio"></textarea>
                 </mat-form-field>
 
+                <div class="pref">
+                  <div class="pref-hd">I am looking for</div>
+                  <div class="pref-grid">
+                    <mat-checkbox formControlName="seekingJob">Work</mat-checkbox>
+                    <mat-checkbox formControlName="seekingInternship">Internship</mat-checkbox>
+                  </div>
+                </div>
+
                 <button mat-flat-button color="primary" type="submit" [disabled]="profileForm.invalid || isSaving">
                   <mat-icon aria-hidden="true">save</mat-icon>
                   Save Profile
@@ -142,6 +150,50 @@
           <div class="bio" *ngIf="student.bio">
             <div class="section-hd">Bio</div>
             <p class="bio-txt">{{ student.bio }}</p>
+          </div>
+
+          <div class="bio ai-report" *ngIf="evaluation$ | async as evaluation">
+            <div class="section-hd">AI GitHub Evaluation</div>
+            <div class="eval-top">
+              <span class="eval-pill" [ngClass]="'st-' + (evaluation?.status ?? 'none')">
+                {{ evaluationStatusLabel(evaluation) }}
+              </span>
+              <span class="eval-date">Last analyzed: {{ formatIsoDate(evaluation?.lastAnalyzedAt ?? null) }}</span>
+            </div>
+
+            <div class="eval-error" *ngIf="evaluation?.lastError">{{ evaluation?.lastError }}</div>
+
+            <p class="bio-txt" *ngIf="evaluation?.summaryMk">{{ evaluation?.summaryMk }}</p>
+
+            <div class="eval-scores" *ngIf="evaluation?.scores?.overall !== null">
+              <div class="score">
+                <div class="k">Overall</div>
+                <div class="v">{{ evaluation?.scores?.overall }}/100</div>
+              </div>
+              <div class="score">
+                <div class="k">Code Quality</div>
+                <div class="v">{{ evaluation?.scores?.codeQuality }}/100</div>
+              </div>
+              <div class="score">
+                <div class="k">Consistency</div>
+                <div class="v">{{ evaluation?.scores?.consistency }}/100</div>
+              </div>
+              <div class="score">
+                <div class="k">Activity</div>
+                <div class="v">{{ evaluation?.scores?.activity }}/100</div>
+              </div>
+              <div class="score">
+                <div class="k">Documentation</div>
+                <div class="v">{{ evaluation?.scores?.documentation }}/100</div>
+              </div>
+            </div>
+
+            <div class="eval-metrics" *ngIf="evaluation?.metrics as m">
+              <div><strong>Commits ({{ m.commitWindowDays }}d):</strong> {{ m.commitCount }}</div>
+              <div><strong>Active weeks:</strong> {{ m.activeWeeks }}</div>
+              <div><strong>Avg per week:</strong> {{ m.averageCommitsPerWeek }}</div>
+              <div><strong>Activity spread:</strong> {{ asPercent(m.activitySpread) }}</div>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>

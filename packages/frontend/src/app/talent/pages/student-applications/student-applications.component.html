@@ -1,0 +1,67 @@
+<div class="page">
+  <header class="page-hd">
+    <div>
+      <div class="eyebrow">Student</div>
+      <h1 class="title">My Applications</h1>
+      <p class="subtitle">Track your job applications, interview phases, and rejection feedback.</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="refresh()">
+      <mat-icon aria-hidden="true">refresh</mat-icon>
+      Refresh
+    </button>
+  </header>
+
+  <section class="results">
+    <div class="results-bar">
+      <div class="results-count">
+        <mat-icon aria-hidden="true">assignment</mat-icon>
+        <span>{{ ((applications$ | async) ?? []).length }} applications</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="applications$ | async as applications; else loading">
+      <div class="grid" *ngIf="applications.length > 0; else empty">
+        <mat-card class="application-card" appearance="outlined" *ngFor="let app of applications; trackBy: trackApplication">
+          <mat-card-header>
+            <mat-card-title>{{ app.job.title }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ app.job.companyName }} • {{ app.job.location }} • {{ app.job.workMode }} • {{ jobTypeLabel(app.job) }}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="status-line">
+              <span class="status-pill" [ngClass]="statusClass(app.status)">
+                {{ statusLabel(app.status) }}
+              </span>
+            </div>
+
+            <div class="timestamps">
+              <div>Applied: {{ app.createdAtIso | date: 'MMM d, y, HH:mm' }}</div>
+              <div>Updated: {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+            </div>
+
+            <div class="reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
+              <div class="reason-hd">Rejection reason</div>
+              <div class="reason-text">{{ app.rejectionReason }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </ng-container>
+
+    <ng-template #loading>
+      <div class="state">
+        <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+        <div class="state-txt">Loading applications…</div>
+      </div>
+    </ng-template>
+
+    <ng-template #empty>
+      <div class="state">
+        <mat-icon class="state-ic" aria-hidden="true">inbox</mat-icon>
+        <div class="state-txt">You have not applied to any jobs yet.</div>
+      </div>
+    </ng-template>
+  </section>
+</div>

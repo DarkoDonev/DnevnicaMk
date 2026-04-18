@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 
 import {environment} from '../../../environments/environment';
-import {Student} from '../models';
+import {Student, StudentAiEvaluationDetails, StudentAiEvaluationRunResult} from '../models';
 
 interface StudentsResponse {
   data: Student[];
@@ -11,6 +11,14 @@ interface StudentsResponse {
 
 interface StudentResponse {
   data: Student;
+}
+
+interface StudentEvaluationResponse {
+  data: StudentAiEvaluationDetails;
+}
+
+interface StudentEvaluationRunResponse {
+  data: StudentAiEvaluationRunResult;
 }
 
 @Injectable({providedIn: 'root'})
@@ -35,6 +43,8 @@ export class StudentDirectoryService {
     linkedInUrl?: string;
     githubUrl?: string;
     bio?: string;
+    seekingJob?: boolean;
+    seekingInternship?: boolean;
   }): Observable<Student> {
     return this.http.put<StudentResponse>(`${environment.apiUrl}/students/me`, profile).pipe(map((r) => r.data));
   }
@@ -55,5 +65,22 @@ export class StudentDirectoryService {
     return this.http
       .delete<StudentResponse>(`${environment.apiUrl}/students/me/skills/${encodeURIComponent(skillName)}`)
       .pipe(map((r) => r.data));
+  }
+
+  runStudentEvaluation(studentId: number, force = false): Observable<StudentAiEvaluationRunResult> {
+    const q = force ? '?force=true' : '';
+    return this.http
+      .post<StudentEvaluationRunResponse>(`${environment.apiUrl}/students/${studentId}/github-evaluation/run${q}`, {})
+      .pipe(map((r) => r.data));
+  }
+
+  getStudentEvaluation(studentId: number): Observable<StudentAiEvaluationDetails> {
+    return this.http
+      .get<StudentEvaluationResponse>(`${environment.apiUrl}/students/${studentId}/github-evaluation`)
+      .pipe(map((r) => r.data));
+  }
+
+  getMyEvaluation(): Observable<StudentAiEvaluationDetails> {
+    return this.http.get<StudentEvaluationResponse>(`${environment.apiUrl}/students/me/github-evaluation`).pipe(map((r) => r.data));
   }
 }

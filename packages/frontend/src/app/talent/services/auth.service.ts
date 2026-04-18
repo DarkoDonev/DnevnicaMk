@@ -6,7 +6,7 @@ import {BehaviorSubject, map, Observable, tap} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {clearStoredAuthToken, getStoredAuthToken, setStoredAuthToken} from './auth-token.storage';
 
-export type UserRole = 'student' | 'company';
+export type UserRole = 'student' | 'company' | 'admin';
 
 export interface AuthUser {
   id: number;
@@ -43,6 +43,12 @@ interface LoginResponse {
 
 interface MeResponse {
   data: AuthUser;
+}
+
+export interface RegisterCompanyResult {
+  status: 'pending_approval';
+  message: string;
+  company: {id: number; name: string};
 }
 
 function decodeJwtPayload(token: string): any | null {
@@ -106,12 +112,8 @@ export class AuthService {
     name: string;
     location?: string;
     websiteUrl?: string;
-  }): Observable<AuthState> {
-    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/register/company`, payload).pipe(
-      tap((res) => setStoredAuthToken(res.token)),
-      map((res) => this.toState(res.user)),
-      tap((state) => this.stateSubject.next(state)),
-    );
+  }): Observable<RegisterCompanyResult> {
+    return this.http.post<RegisterCompanyResult>(`${environment.apiUrl}/auth/register/company`, payload);
   }
 
   logout(): void {

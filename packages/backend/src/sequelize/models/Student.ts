@@ -1,4 +1,6 @@
-import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript';
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, HasOne, Model, Table} from 'sequelize-typescript';
+import {JobApplication} from './JobApplication';
+import {StudentGithubEvaluation} from './StudentGithubEvaluation';
 import {StudentSkill} from './StudentSkill';
 import {User} from './User';
 
@@ -41,6 +43,18 @@ export class Student extends Model<Student> {
   @Column({type: DataType.STRING(260), allowNull: true})
   declare cvOriginalName?: string | null;
 
+  @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: false})
+  declare seekingJob: boolean;
+
+  @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: false})
+  declare seekingInternship: boolean;
+
   @HasMany(() => StudentSkill)
   declare studentSkills?: StudentSkill[];
+
+  @HasMany(() => JobApplication)
+  declare applications?: JobApplication[];
+
+  @HasOne(() => StudentGithubEvaluation)
+  declare githubEvaluation?: StudentGithubEvaluation;
 }

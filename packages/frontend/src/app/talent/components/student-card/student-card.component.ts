@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
 
-import {Student} from '../../models';
+import {EvaluationStatus, Student} from '../../models';
 
 @Component({
   selector: 'app-student-card',
@@ -10,6 +10,11 @@ import {Student} from '../../models';
 })
 export class StudentCardComponent {
   @Input({required: true}) student!: Student;
+  @Input() analyzeLoading = false;
+  @Input() showEvaluationActions = false;
+
+  @Output() analyzeRequested = new EventEmitter<Student>();
+  @Output() detailsRequested = new EventEmitter<Student>();
 
   get initials(): string {
     const parts = this.student.name.trim().split(/\s+/).filter(Boolean);
@@ -19,5 +24,45 @@ export class StudentCardComponent {
   }
 
   trackSkill = (_: number, item: Student['skills'][number]) => item.skillName;
-}
 
+  get seekingLabel(): string {
+    const seeksJob = !!this.student.seekingJob;
+    const seeksInternship = !!this.student.seekingInternship;
+    if (seeksJob && seeksInternship) return 'Work + Internship';
+    if (seeksJob) return 'Work';
+    if (seeksInternship) return 'Internship';
+    return 'None selected';
+  }
+
+  get evaluationStatus(): EvaluationStatus {
+    return this.student.aiEvaluationPreview?.status ?? 'none';
+  }
+
+  get evaluationStatusLabel(): string {
+    switch (this.evaluationStatus) {
+      case 'ready':
+        return 'Ready';
+      case 'pending':
+        return 'Running';
+      case 'failed':
+        return 'Failed';
+      case 'none':
+      default:
+        return 'Not analyzed';
+    }
+  }
+
+  get canViewDetails(): boolean {
+    return this.evaluationStatus === 'ready' || this.evaluationStatus === 'failed';
+  }
+
+  requestAnalyze(): void {
+    if (this.analyzeLoading) return;
+    this.analyzeRequested.emit(this.student);
+  }
+
+  requestDetails(): void {
+    if (!this.canViewDetails) return;
+    this.detailsRequested.emit(this.student);
+  }
+}

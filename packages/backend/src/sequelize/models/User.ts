@@ -2,7 +2,7 @@ import {HasOne, Column, DataType, Model, Table} from 'sequelize-typescript';
 import {Company} from './Company';
 import {Student} from './Student';
 
-export type UserRole = 'student' | 'company';
+export type UserRole = 'student' | 'company' | 'admin';
 
 @Table({tableName: 'users'})
 export class User extends Model<User> {
@@ -15,7 +15,7 @@ export class User extends Model<User> {
   @Column({type: DataType.STRING(100), allowNull: false})
   declare passwordHash: string;
 
-  @Column({type: DataType.ENUM('student', 'company'), allowNull: false})
+  @Column({type: DataType.ENUM('student', 'company', 'admin'), allowNull: false})
   declare role: UserRole;
 
   @HasOne(() => Company)

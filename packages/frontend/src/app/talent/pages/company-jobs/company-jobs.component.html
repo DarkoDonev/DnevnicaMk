@@ -35,6 +35,14 @@
             </mat-form-field>
           </div>
 
+          <div class="type-box">
+            <div class="type-hd">Listing Type</div>
+            <div class="type-grid">
+              <mat-checkbox formControlName="isJob">Work</mat-checkbox>
+              <mat-checkbox formControlName="isInternship">Internship</mat-checkbox>
+            </div>
+          </div>
+
           <mat-form-field appearance="outline">
             <mat-label>Description</mat-label>
             <textarea
@@ -93,12 +101,61 @@
     <section class="jobs">
       <div class="jobs-hd">
         <div class="jobs-title">Your Job Posts</div>
-        <div class="jobs-sub">Visible to students under Student ▸ Jobs</div>
+        <div class="jobs-sub">Visible to students under Student ▸ Jobs and manageable below.</div>
       </div>
 
-      <ng-container *ngIf="companyJobs$ | async as jobs; else loading">
-        <div class="grid" *ngIf="jobs.length > 0; else empty">
-          <app-job-card *ngFor="let j of jobs; trackBy: trackJob" [job]="j"></app-job-card>
+      <ng-container *ngIf="companyJobsVm$ | async as vm; else loading">
+        <div class="grid" *ngIf="vm.jobs.length > 0; else empty">
+          <div class="job-with-applications" *ngFor="let j of vm.jobs; trackBy: trackJob">
+            <app-job-card [job]="j"></app-job-card>
+
+            <mat-card class="applications" appearance="outlined">
+              <mat-card-header>
+                <mat-card-title>Applicants</mat-card-title>
+                <mat-card-subtitle>{{ (vm.applicationsByJobId.get(j.id) ?? []).length }} applications</mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="apps-list" *ngIf="(vm.applicationsByJobId.get(j.id) ?? []).length > 0; else noApplicants">
+                  <div class="app-row" *ngFor="let app of vm.applicationsByJobId.get(j.id) ?? []; trackBy: trackApplication">
+                    <div class="app-main">
+                      <div class="app-name">{{ app.student?.name || 'Applicant' }}</div>
+                      <div class="app-email">{{ app.student?.email || '' }}</div>
+                      <div class="app-updated">Updated {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+                      <span class="status-pill" [ngClass]="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
+                    </div>
+
+                    <div class="app-actions" *ngIf="getActionsForStatus(app.status).length > 0">
+                      <button
+                        *ngFor="let action of getActionsForStatus(app.status)"
+                        mat-flat-button
+                        type="button"
+                        [color]="action.color"
+                        [disabled]="updatingApplicationId !== null"
+                        (click)="updateStatus(app, action)"
+                      >
+                        <mat-icon aria-hidden="true" *ngIf="action.status === 'REJECTED'">block</mat-icon>
+                        <mat-icon aria-hidden="true" *ngIf="action.status !== 'REJECTED'">arrow_forward</mat-icon>
+                        {{ action.label }}
+                      </button>
+                    </div>
+
+                    <div class="app-reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
+                      <div class="reason-hd">Reason</div>
+                      <div class="reason-text">{{ app.rejectionReason }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <ng-template #noApplicants>
+                  <div class="applications-empty">
+                    <mat-icon aria-hidden="true">person_search</mat-icon>
+                    <span>No applicants for this job yet.</span>
+                  </div>
+                </ng-template>
+              </mat-card-content>
+            </mat-card>
+          </div>
         </div>
       </ng-container>
 

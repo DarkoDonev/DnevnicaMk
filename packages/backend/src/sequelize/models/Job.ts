@@ -1,5 +1,6 @@
 import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript';
 import {Company} from './Company';
+import {JobApplication} from './JobApplication';
 import {JobRequirement} from './JobRequirement';
 
 export type WorkMode = 'Remote' | 'Hybrid' | 'On-site';
@@ -25,6 +26,12 @@ export class Job extends Model<Job> {
   @Column({type: DataType.ENUM('Remote', 'Hybrid', 'On-site'), allowNull: false})
   declare workMode: WorkMode;
 
+  @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: true})
+  declare isJob: boolean;
+
+  @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: false})
+  declare isInternship: boolean;
+
   @Column({type: DataType.TEXT, allowNull: false})
   declare description: string;
 
@@ -33,4 +40,7 @@ export class Job extends Model<Job> {
 
   @HasMany(() => JobRequirement)
   declare requirements?: JobRequirement[];
+
+  @HasMany(() => JobApplication)
+  declare applications?: JobApplication[];
 }

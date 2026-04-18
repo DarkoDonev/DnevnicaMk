@@ -1,0 +1,57 @@
+<div class="page">
+  <header class="page-hd">
+    <div>
+      <div class="eyebrow">Community</div>
+      <h1 class="title">Events</h1>
+      <p class="subtitle">Upcoming job-fair and hiring events scraped daily from configured sources.</p>
+    </div>
+  </header>
+
+  <ng-container *ngIf="state$ | async as state">
+    <section class="state" *ngIf="state.status === 'loading'">
+      <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+      <div class="state-txt">Loading events…</div>
+    </section>
+
+    <section class="state" *ngIf="state.status === 'error'">
+      <mat-icon class="state-ic" aria-hidden="true">error_outline</mat-icon>
+      <div class="state-txt">{{ state.errorMessage }}</div>
+    </section>
+
+    <section class="list" *ngIf="state.status === 'ready' && state.data.length > 0">
+      <mat-card class="event-card" appearance="outlined" *ngFor="let event of state.data; trackBy: trackEvent">
+        <mat-card-content>
+          <div class="card-head">
+            <h3 class="event-title">{{ event.title }}</h3>
+            <a class="event-link" [href]="event.eventUrl" target="_blank" rel="noopener noreferrer">
+              Open
+              <mat-icon aria-hidden="true">open_in_new</mat-icon>
+            </a>
+          </div>
+
+          <div class="meta">
+            <div class="meta-item">
+              <mat-icon aria-hidden="true">event</mat-icon>
+              <span>{{ event.startsAtIso | date: 'dd MMM yyyy, HH:mm' }}</span>
+            </div>
+            <div class="meta-item" *ngIf="event.location">
+              <mat-icon aria-hidden="true">location_on</mat-icon>
+              <span>{{ event.location }}</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon aria-hidden="true">language</mat-icon>
+              <a [href]="event.sourceUrl" target="_blank" rel="noopener noreferrer">{{ event.sourceName }}</a>
+            </div>
+          </div>
+
+          <p class="snippet" *ngIf="event.snippet">{{ event.snippet }}</p>
+        </mat-card-content>
+      </mat-card>
+    </section>
+
+    <section class="state" *ngIf="state.status === 'ready' && state.data.length === 0">
+      <mat-icon class="state-ic" aria-hidden="true">event_busy</mat-icon>
+      <div class="state-txt">No upcoming job-fair events found at the moment.</div>
+    </section>
+  </ng-container>
+</div>

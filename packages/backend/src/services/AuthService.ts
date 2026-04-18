@@ -37,6 +37,17 @@ export interface RegisterCompanyPayload {
   websiteUrl?: string;
 }
 
+export interface RegisterCompanyResult {
+  status: 'pending_approval';
+  message: string;
+  company: {id: number; name: string};
+}
+
+export const COMPANY_LOGIN_PENDING_MESSAGE =
+  'Company registration is pending admin approval. Please contact admins by phone or email.';
+export const COMPANY_LOGIN_REJECTED_MESSAGE =
+  'Company registration was rejected. Please contact admins by phone or email.';
+
 export class AuthService {
   private readonly jwtSecret = process.env['JWT_SECRET_KEY'] || 'dev-secret-change-me';
 
@@ -58,8 +69,14 @@ export class AuthService {
 
     if (user.role === 'company') {
       const c = await Company.findOne({where: {userId: user.id}});
+      if (c?.registrationStatus === 'pending') {
+        throw new Error(COMPANY_LOGIN_PENDING_MESSAGE);
+      }
+      if (c?.registrationStatus === 'rejected') {
+        throw new Error(COMPANY_LOGIN_REJECTED_MESSAGE);
+      }
       if (c) company = {id: c.id, name: c.name};
-    } else {
+    } else if (user.role === 'student') {
       const s = await Student.findOne({where: {userId: user.id}});
       if (s) student = {id: s.id, name: s.name};
     }
@@ -77,7 +94,7 @@ export class AuthService {
     if (user.role === 'company') {
       const c = await Company.findOne({where: {userId: user.id}});
       if (c) company = {id: c.id, name: c.name};
-    } else {
+    } else if (user.role === 'student') {
       const s = await Student.findOne({where: {userId: user.id}});
       if (s) student = {id: s.id, name: s.name};
     }
@@ -116,6 +133,8 @@ export class AuthService {
           linkedInUrl: payload.linkedInUrl?.trim() || null,
           githubUrl: payload.githubUrl?.trim() || null,
           bio: payload.bio?.trim() || null,
+          seekingJob: false,
+          seekingInternship: false,
         },
         {transaction: t},
       );
@@ -125,7 +144,7 @@ export class AuthService {
     });
   }
 
-  async registerCompany(payload: RegisterCompanyPayload): Promise<LoginResult> {
+  async registerCompany(payload: RegisterCompanyPayload): Promise<RegisterCompanyResult> {
     const email = payload.email.trim().toLowerCase();
     const passwordHash = await bcrypt.hash(payload.password, 10);
 
@@ -144,12 +163,16 @@ export class AuthService {
           name: payload.name.trim(),
           location: (payload.location ?? 'Remote').trim() || 'Remote',
           websiteUrl: payload.websiteUrl?.trim() || null,
+          registrationStatus: 'pending',
         },
         {transaction: t},
       );
 
-      // Auto-login after register
-      return this.issueToken(user, {company: {id: company.id, name: company.name}, student: null});
+      return {
+        status: 'pending_approval',
+        message: 'Company registration submitted. Please contact admins by phone or email for approval.',
+        company: {id: company.id, name: company.name},
+      };
     });
   }
 

@@ -51,7 +51,7 @@ export class LoginComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (state) => {
-          void this.router.navigateByUrl(state.role === 'company' ? '/company/students' : '/student/profile');
+          void this.router.navigateByUrl(this.routeForRole(state.role));
         },
         error: (err: unknown) => {
           const msg =
@@ -65,5 +65,11 @@ export class LoginComponent implements OnDestroy {
         },
         complete: () => (this.isSubmitting = false),
       });
+  }
+
+  private routeForRole(role: UserRole | null): string {
+    if (role === 'admin') return '/admin/company-approvals';
+    if (role === 'company') return '/company/profile';
+    return '/student/profile';
   }
 }

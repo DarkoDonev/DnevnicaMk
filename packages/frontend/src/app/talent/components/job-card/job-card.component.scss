@@ -36,6 +36,11 @@
   opacity: 0.7;
 }
 
+.type {
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.78);
+}
+
 .desc {
   margin: 6px 0 0;
   color: rgba(15, 23, 42, 0.75);
@@ -79,3 +84,12 @@
   padding: 0 10px 10px 10px;
 }
 
+.apply-status {
+  margin-right: auto;
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.6);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}

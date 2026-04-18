@@ -3,9 +3,12 @@ import {Sequelize} from "sequelize-typescript";
 require('dotenv').config(); //must be on top, above imported services
 
 import {Company} from './models/Company';
+import {Event} from './models/Event';
 import {Job} from './models/Job';
+import {JobApplication} from './models/JobApplication';
 import {JobRequirement} from './models/JobRequirement';
 import {Student} from './models/Student';
+import {StudentGithubEvaluation} from './models/StudentGithubEvaluation';
 import {StudentSkill} from './models/StudentSkill';
 import {TechSkill} from './models/TechSkill';
 import {User} from './models/User';
@@ -21,10 +24,13 @@ const sequelizeConnection = new Sequelize({
         User,
         Company,
         Student,
+        StudentGithubEvaluation,
         TechSkill,
         StudentSkill,
         Job,
+        JobApplication,
         JobRequirement,
+        Event,
     ],
     dialectOptions: {
         connectTimeout: 15000
