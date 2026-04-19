@@ -7,6 +7,7 @@ import {Event} from './models/Event';
 import {Job} from './models/Job';
 import {JobApplication} from './models/JobApplication';
 import {JobRequirement} from './models/JobRequirement';
+import {Notification} from './models/Notification';
 import {Student} from './models/Student';
 import {StudentGithubEvaluation} from './models/StudentGithubEvaluation';
 import {StudentSkill} from './models/StudentSkill';
@@ -31,6 +32,7 @@ const sequelizeConnection = new Sequelize({
         JobApplication,
         JobRequirement,
         Event,
+        Notification,
     ],
     dialectOptions: {
         connectTimeout: 15000

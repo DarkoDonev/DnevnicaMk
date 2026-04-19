@@ -75,6 +75,7 @@ export interface Student {
   id: number;
   name: string;
   headline: string;
+  profileImageUrl?: string;
   contact: StudentContact;
   skills: StudentSkill[];
   seekingJob: boolean;
@@ -90,6 +91,7 @@ export interface Company {
   email: string;
   location: string;
   websiteUrl?: string;
+  profileImageUrl?: string;
 }
 
 export type WorkMode = 'Remote' | 'Hybrid' | 'On-site';
@@ -145,6 +147,7 @@ export interface JobApplicationStudentSummary {
   email: string;
   headline?: string;
   location?: string;
+  profileImageUrl?: string;
   aiEvaluationPreview?: StudentAiEvaluationPreview;
 }
 
@@ -171,6 +174,7 @@ export interface PotentialStudent {
   email: string;
   headline: string;
   location: string;
+  profileImageUrl?: string;
   seekingJob: boolean;
   seekingInternship: boolean;
   aiEvaluationPreview?: StudentAiEvaluationPreview;
@@ -200,4 +204,31 @@ export interface EventItem {
     id: number;
     name: string;
   };
+}
+
+export type NotificationType =
+  | 'JOB_INVITED'
+  | 'JOB_STATUS_CHANGED'
+  | 'JOB_NEW_APPLICATION'
+  | 'JOB_INVITE_RESPONSE'
+  | 'EVENT_PUBLISHED';
+
+export type NotificationTarget =
+  | {
+      kind: 'job';
+      jobId: number;
+    }
+  | {
+      kind: 'event_url';
+      eventUrl: string;
+    };
+
+export interface NotificationItem {
+  id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  createdAtIso: string;
+  isRead: boolean;
+  target?: NotificationTarget;
 }

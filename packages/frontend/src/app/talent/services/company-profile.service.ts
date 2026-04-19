@@ -10,6 +10,7 @@ export interface CompanyProfile {
   email: string;
   location: string;
   websiteUrl: string | null;
+  profileImageUrl: string | null;
   registrationStatus: 'pending' | 'approved' | 'rejected';
 }
 
@@ -23,5 +24,11 @@ export class CompanyProfileService {
 
   getMe(): Observable<CompanyProfile> {
     return this.http.get<CompanyProfileResponse>(`${environment.apiUrl}/companies/me`).pipe(map((r) => r.data));
+  }
+
+  uploadProfileImage(file: File): Observable<CompanyProfile> {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return this.http.put<CompanyProfileResponse>(`${environment.apiUrl}/companies/me/photo`, fd).pipe(map((r) => r.data));
   }
 }

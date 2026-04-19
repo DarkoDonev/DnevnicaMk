@@ -11,7 +11,8 @@ import morgan from "morgan";
 import moment from "moment";
 import helmet from 'helmet';
 import {Company} from './sequelize/models/Company';
-//Start the worker
+import {closeNotificationEmailQueue} from './queues/notification-email-queue';
+import {startNotificationEmailWorker, stopNotificationEmailWorker} from './workers/notification-email-worker';
 
 
 
@@ -98,7 +99,8 @@ useExpressServer(app, {
     defaultErrorHandler: false,
 });
 
-const PORT = 3500;
+const PORT = Number(process.env['PORT'] ?? 3500);
+const runEmailWorkerInApi = String(process.env['EMAIL_QUEUE_RUN_WORKER_IN_API'] ?? 'true').trim().toLowerCase() !== 'false';
 
 
 app.use(bodyParser.json());
@@ -110,4 +112,36 @@ sequelizeConnection.authenticate().then(() => {
     console.error("Unable to connect to the database:", error)
 })
 
-app.listen(PORT, () => {})
+if (runEmailWorkerInApi) {
+    startNotificationEmailWorker();
+} else {
+    console.info('[notification-email-queue] Worker start skipped in API process (EMAIL_QUEUE_RUN_WORKER_IN_API=false).');
+}
+
+const server = app.listen(PORT, () => {});
+let isShuttingDown = false;
+
+const shutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.info(`[server] Received ${signal}. Shutting down...`);
+
+    await stopNotificationEmailWorker().catch((error: any) => {
+        console.error('[notification-email-queue] Failed to stop worker', error?.message ?? error);
+    });
+    await closeNotificationEmailQueue().catch((error: any) => {
+        console.error('[notification-email-queue] Failed to close queue', error?.message ?? error);
+    });
+
+    server.close(() => {
+        process.exit(0);
+    });
+};
+
+process.on('SIGINT', () => {
+    void shutdown('SIGINT');
+});
+
+process.on('SIGTERM', () => {
+    void shutdown('SIGTERM');
+});

@@ -91,7 +91,7 @@ export class RegisterComponent implements OnDestroy {
         })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: () => void this.router.navigateByUrl('/student/profile'),
+          next: () => void this.router.navigateByUrl('/student/jobs'),
           error: (err: unknown) => this.handleRegistrationError(err),
           complete: () => (this.isSubmitting = false),
         });

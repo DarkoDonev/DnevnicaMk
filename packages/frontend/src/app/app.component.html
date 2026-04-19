@@ -9,6 +9,7 @@
       <nav class="nav" *ngIf="auth.role" aria-label="Primary navigation">
         <ng-container [ngSwitch]="auth.role">
           <ng-container *ngSwitchCase="'company'">
+            <a mat-button routerLink="/company/ai-evaluation" routerLinkActive="active">AI Evaluation</a>
             <a mat-button routerLink="/company/jobs" routerLinkActive="active">Post Jobs</a>
             <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
           </ng-container>
@@ -24,6 +25,67 @@
       </nav>
 
       <span class="spacer"></span>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="notifications-trigger"
+        *ngIf="auth.role === 'student' || auth.role === 'company'"
+        [matMenuTriggerFor]="notificationsMenu"
+        [matBadge]="(unreadCount$ | async) ?? 0"
+        [matBadgeHidden]="((unreadCount$ | async) ?? 0) === 0"
+        matBadgeColor="warn"
+        matBadgeSize="small"
+        aria-label="Open notifications"
+        (menuOpened)="onNotificationsMenuOpened()"
+      >
+        <mat-icon aria-hidden="true">notifications</mat-icon>
+      </button>
+
+      <mat-menu #notificationsMenu="matMenu" xPosition="before">
+        <ng-container *ngIf="notificationsState$ | async as state">
+          <ng-container *ngIf="state.status === 'loading'">
+            <div class="notifications-state">
+              <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+              <span>Loading notifications...</span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="state.status === 'error'">
+            <div class="notifications-state error">
+              <mat-icon aria-hidden="true">error_outline</mat-icon>
+              <span>{{ state.errorMessage ?? 'Could not load notifications.' }}</span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="state.status === 'ready' && state.data.length === 0">
+            <div class="notifications-state">
+              <mat-icon aria-hidden="true">notifications_none</mat-icon>
+              <span>No notifications yet.</span>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="state.status === 'ready' && state.data.length > 0">
+            <button
+              mat-menu-item
+              type="button"
+              class="notification-item"
+              *ngFor="let notification of state.data"
+              [disabled]="!notification.target"
+              (click)="openNotification(notification, auth.role)"
+            >
+              <div class="notification-copy">
+                <div class="notification-title-row">
+                  <span class="notification-title">{{ notification.title }}</span>
+                  <span class="notification-unread-dot" *ngIf="!notification.isRead" aria-hidden="true"></span>
+                </div>
+                <span class="notification-message">{{ notification.message }}</span>
+                <span class="notification-time">{{ notification.createdAtIso | date: 'dd MMM, HH:mm' }}</span>
+              </div>
+            </button>
+          </ng-container>
+        </ng-container>
+      </mat-menu>
 
       <a
         mat-button

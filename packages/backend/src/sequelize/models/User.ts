@@ -1,5 +1,6 @@
-import {HasOne, Column, DataType, Model, Table} from 'sequelize-typescript';
+import {HasMany, HasOne, Column, DataType, Model, Table} from 'sequelize-typescript';
 import {Company} from './Company';
+import {Notification} from './Notification';
 import {Student} from './Student';
 
 export type UserRole = 'student' | 'company' | 'admin';
@@ -23,4 +24,7 @@ export class User extends Model<User> {
 
   @HasOne(() => Student)
   declare student?: Student;
+
+  @HasMany(() => Notification)
+  declare notifications?: Notification[];
 }

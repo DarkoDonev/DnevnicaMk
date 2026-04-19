@@ -6,6 +6,14 @@ import {StudentGithubEvaluationService} from '../../services/StudentGithubEvalua
 export class StudentGithubEvaluationsController {
   private readonly evaluation = new StudentGithubEvaluationService();
 
+  @Authorized('student')
+  @Post('/me/github-evaluation/run')
+  async runMyEvaluation(@CurrentUser() user: any, @QueryParam('force') forceRaw?: string) {
+    const force = ['1', 'true', 'yes'].includes(String(forceRaw ?? '').toLowerCase());
+    const data = await this.evaluation.runForStudentUser(Number(user?.sub), force);
+    return {data};
+  }
+
   @Authorized('company')
   @Post('/:studentId/github-evaluation/run')
   async run(@Param('studentId') studentIdRaw: string, @QueryParam('force') forceRaw?: string) {

@@ -69,7 +69,7 @@ export class LoginComponent implements OnDestroy {
 
   private routeForRole(role: UserRole | null): string {
     if (role === 'admin') return '/admin/company-approvals';
-    if (role === 'company') return '/company/profile';
-    return '/student/profile';
+    if (role === 'company') return '/company/jobs';
+    return '/student/jobs';
   }
 }

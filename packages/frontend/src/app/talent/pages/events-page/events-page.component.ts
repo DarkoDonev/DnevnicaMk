@@ -33,7 +33,8 @@ export class EventsPageComponent {
 
   readonly createForm = this.fb.group({
     title: this.fb.control('', {validators: [Validators.required, Validators.minLength(4)]}),
-    startsAtLocal: this.fb.control(this.defaultStartsAtLocal(), {validators: [Validators.required]}),
+    startsAtDate: this.fb.control<unknown>(this.defaultStartsAtDate(), {validators: [Validators.required]}),
+    startsAtTime: this.fb.control(this.defaultStartsAtTime(), {validators: [Validators.required]}),
     location: this.fb.control(''),
     snippet: this.fb.control(''),
     eventUrl: this.fb.control('', {validators: [Validators.required, Validators.pattern(/^https?:\/\/.+/i)]}),
@@ -72,7 +73,22 @@ export class EventsPageComponent {
     if (this.createForm.invalid || this.isSubmitting) return;
 
     const raw = this.createForm.getRawValue();
-    const startsAt = new Date(raw.startsAtLocal);
+    const date = this.coerceDate(raw.startsAtDate);
+    const time = this.parseTime(raw.startsAtTime);
+    if (!date || !time) {
+      this.snackBar.open('Please provide a valid start date/time.', 'Dismiss', {duration: 3500});
+      return;
+    }
+
+    const startsAt = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      time.hours,
+      time.minutes,
+      0,
+      0,
+    );
     if (Number.isNaN(startsAt.getTime())) {
       this.snackBar.open('Please provide a valid start date/time.', 'Dismiss', {duration: 3500});
       return;
@@ -92,7 +108,8 @@ export class EventsPageComponent {
         this.snackBar.open('Event published.', 'Dismiss', {duration: 2500});
         this.createForm.reset({
           title: '',
-          startsAtLocal: this.defaultStartsAtLocal(),
+          startsAtDate: this.defaultStartsAtDate(),
+          startsAtTime: this.defaultStartsAtTime(),
           location: '',
           snippet: '',
           eventUrl: '',
@@ -107,17 +124,50 @@ export class EventsPageComponent {
     });
   }
 
-  private defaultStartsAtLocal(): string {
+  private defaultStartsAtDate(): Date {
     const now = new Date();
     now.setMinutes(0, 0, 0);
     now.setHours(now.getHours() + 24);
+    return now;
+  }
 
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+  private defaultStartsAtTime(): string {
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    now.setHours(now.getHours() + 24);
     const hh = String(now.getHours()).padStart(2, '0');
     const min = String(now.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    return `${hh}:${min}`;
+  }
+
+  private coerceDate(value: unknown): Date | null {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+
+    if (value && typeof value === 'object' && 'toDate' in value) {
+      const maybeToDate = (value as {toDate?: unknown}).toDate;
+      if (typeof maybeToDate === 'function') {
+        const converted = (maybeToDate as (this: unknown) => unknown).call(value);
+        if (converted instanceof Date && !Number.isNaN(converted.getTime())) return converted;
+      }
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      const converted = new Date(value);
+      if (!Number.isNaN(converted.getTime())) return converted;
+    }
+
+    return null;
+  }
+
+  private parseTime(raw: string): {hours: number; minutes: number} | null {
+    const value = raw.trim();
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+    if (!match) return null;
+
+    return {
+      hours: Number(match[1]),
+      minutes: Number(match[2]),
+    };
   }
 
   private toErrorMessage(err: unknown, fallback: string): string {

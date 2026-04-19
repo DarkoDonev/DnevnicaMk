@@ -22,15 +22,22 @@
 
         <div class="two">
           <mat-form-field appearance="outline">
-            <mat-label>Starts At</mat-label>
-            <input matInput type="datetime-local" formControlName="startsAtLocal" />
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="eventStartDatePicker" formControlName="startsAtDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="eventStartDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #eventStartDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Location</mat-label>
-            <input matInput formControlName="location" placeholder="Optional" />
+            <mat-label>Start Time</mat-label>
+            <input matInput type="time" formControlName="startsAtTime" />
           </mat-form-field>
         </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Location</mat-label>
+          <input matInput formControlName="location" placeholder="Optional" />
+        </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Event URL</mat-label>

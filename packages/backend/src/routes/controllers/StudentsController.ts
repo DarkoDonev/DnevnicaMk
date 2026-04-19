@@ -112,6 +112,7 @@ export class StudentsController {
         seekingJob: !!s.seekingJob,
         seekingInternship: !!s.seekingInternship,
         cvUrl: s.cvPath ? `/static/${s.cvPath}` : undefined,
+        profileImageUrl: s.profileImagePath ? `/static/${s.profileImagePath}` : undefined,
         aiEvaluationPreview: this.evaluation.previewFromRecord((s as any).githubEvaluation),
         skills: (s.studentSkills ?? []).map((ss) => ({
           skillName: (ss.techSkill as any)?.name ?? '',
@@ -159,6 +160,58 @@ export class StudentsController {
         seekingJob: !!student.seekingJob,
         seekingInternship: !!student.seekingInternship,
         cvUrl: student.cvPath ? `/static/${student.cvPath}` : undefined,
+        profileImageUrl: student.profileImagePath ? `/static/${student.profileImagePath}` : undefined,
+        aiEvaluationPreview: this.evaluation.previewFromRecord((student as any).githubEvaluation),
+        skills: (student.studentSkills ?? []).map((ss) => ({
+          skillName: (ss.techSkill as any)?.name ?? '',
+          yearsOfExperience: ss.yearsOfExperience,
+        })),
+      },
+    };
+  }
+
+  @Authorized('company')
+  @Get('/:studentId')
+  async getById(@Param('studentId') studentIdRaw: string) {
+    const studentId = Number(studentIdRaw);
+    if (!Number.isInteger(studentId) || studentId <= 0) {
+      throw new BadRequestError('Invalid student id.');
+    }
+
+    const student = await Student.findByPk(studentId, {
+      include: [
+        {model: User, attributes: ['email']},
+        {
+          model: StudentSkill,
+          attributes: ['yearsOfExperience'],
+          include: [{model: TechSkill, attributes: ['name']}],
+        },
+        {
+          model: StudentGithubEvaluation,
+          attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt'],
+        },
+      ],
+    });
+
+    if (!student) throw new NotFoundError('Student not found.');
+
+    return {
+      data: {
+        id: student.id,
+        name: student.name,
+        headline: student.headline,
+        contact: {
+          email: (student.user as any)?.email ?? '',
+          phone: student.phone ?? '',
+          location: student.location ?? '',
+          linkedInUrl: student.linkedInUrl ?? undefined,
+          githubUrl: student.githubUrl ?? undefined,
+        },
+        bio: student.bio ?? undefined,
+        seekingJob: !!student.seekingJob,
+        seekingInternship: !!student.seekingInternship,
+        cvUrl: student.cvPath ? `/static/${student.cvPath}` : undefined,
+        profileImageUrl: student.profileImagePath ? `/static/${student.profileImagePath}` : undefined,
         aiEvaluationPreview: this.evaluation.previewFromRecord((student as any).githubEvaluation),
         skills: (student.studentSkills ?? []).map((ss) => ({
           skillName: (ss.techSkill as any)?.name ?? '',
@@ -233,6 +286,48 @@ export class StudentsController {
 
     student.cvPath = relPath.replace(/\\/g, '/');
     student.cvOriginalName = safeOrig;
+    await student.save();
+
+    return this.me(user);
+  }
+
+  @Authorized('student')
+  @Put('/me/photo')
+  async uploadPhoto(
+    @CurrentUser() user: any,
+    @UploadedFile('photo', {
+      options: multer({
+        storage: multer.memoryStorage(),
+        limits: {fileSize: 5 * 1024 * 1024}, // 5MB
+      }),
+    })
+    file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestError('Missing file field "photo".');
+
+    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    if (!allowed.has(file.mimetype)) {
+      throw new BadRequestError('Profile photo must be JPG, PNG, or WEBP.');
+    }
+
+    const student = await Student.findOne({where: {userId: user.sub}});
+    if (!student) throw new NotFoundError('Student not found.');
+
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const safeOrig = safeFilename(file.originalname || 'photo');
+    const fileName = `profile_${student.id}_${Date.now()}${ext || ''}`;
+
+    // Stored under backend/static/uploads/profile/student/<studentId>/
+    const relDir = path.join('uploads', 'profile', 'student', String(student.id));
+    const relPath = path.join(relDir, fileName);
+    const absDir = path.resolve(__dirname, '../../../static', relDir);
+    const absPath = path.resolve(__dirname, '../../../static', relPath);
+
+    fs.mkdirSync(absDir, {recursive: true});
+    fs.writeFileSync(absPath, file.buffer);
+
+    student.profileImagePath = relPath.replace(/\\/g, '/');
+    student.profileImageOriginalName = safeOrig;
     await student.save();
 
     return this.me(user);

@@ -1,6 +1,14 @@
 <mat-card class="student-card" appearance="outlined">
   <mat-card-header>
-    <div class="avatar" mat-card-avatar aria-hidden="true">{{ initials }}</div>
+    <div class="avatar" mat-card-avatar aria-hidden="true">
+      <img
+        *ngIf="student.profileImageUrl; else studentInitials"
+        [src]="profileImageHref(student.profileImageUrl)"
+        [alt]="student.name + ' profile photo'"
+        class="avatar-img"
+      />
+      <ng-template #studentInitials>{{ initials }}</ng-template>
+    </div>
     <mat-card-title class="student-name">{{ student.name }}</mat-card-title>
     <mat-card-subtitle class="student-headline">{{ student.headline }}</mat-card-subtitle>
   </mat-card-header>

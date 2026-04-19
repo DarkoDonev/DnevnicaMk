@@ -39,6 +39,8 @@ import {StudentGithubEvaluation} from '../../sequelize/models/StudentGithubEvalu
 import {StudentSkill} from '../../sequelize/models/StudentSkill';
 import {TechSkill} from '../../sequelize/models/TechSkill';
 import {User} from '../../sequelize/models/User';
+import {enqueueNotificationEmailJob, NotificationEmailJobData} from '../../queues/notification-email-queue';
+import {NotificationsService} from '../../services/NotificationsService';
 
 interface NormalizedRequirement {
   skillName: string;
@@ -77,6 +79,14 @@ const APPLICATION_TRANSITIONS: Record<ApplicationStatus, readonly ApplicationSta
   DECLINED: [],
   REJECTED: [],
 };
+
+const COMPANY_TO_STUDENT_ALERT_STATUSES: readonly ApplicationStatus[] = [
+  'APPROVED',
+  'HR_INTERVIEW',
+  'TECHNICAL_INTERVIEW',
+  'DONE',
+  'REJECTED',
+];
 
 const STUDENT_INVITE_DECISIONS = ['ACCEPT', 'DECLINE'] as const;
 type StudentInviteDecision = (typeof STUDENT_INVITE_DECISIONS)[number];
@@ -249,8 +259,9 @@ function summarySnippet(summary: string | null | undefined): string | null {
   if (!summary) return null;
   const trimmed = summary.trim();
   if (!trimmed) return null;
-  if (trimmed.length <= 180) return trimmed;
-  return `${trimmed.slice(0, 177)}...`;
+  const maxLength = 420;
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 3).trimEnd()}...`;
 }
 
 function mapEvaluationPreviewFromStudent(student: any) {
@@ -308,6 +319,7 @@ function mapJobApplication(app: JobApplication, includeStudent: boolean) {
       email: student?.user?.email ?? '',
       headline: student?.headline ?? '',
       location: student?.location ?? '',
+      profileImageUrl: student?.profileImagePath ? `/static/${student.profileImagePath}` : undefined,
       aiEvaluationPreview: mapEvaluationPreviewFromStudent(student),
     };
   }
@@ -322,6 +334,7 @@ function mapPotentialStudent(student: Student) {
     email: (student.user as any)?.email ?? '',
     headline: student.headline,
     location: student.location,
+    profileImageUrl: student.profileImagePath ? `/static/${student.profileImagePath}` : undefined,
     seekingJob: !!student.seekingJob,
     seekingInternship: !!student.seekingInternship,
     aiEvaluationPreview: mapEvaluationPreviewFromStudent(student),
@@ -334,6 +347,8 @@ function mapPotentialStudent(student: Student) {
 
 @JsonController('/api/jobs')
 export class JobsController {
+  private readonly notifications = new NotificationsService();
+
   @Authorized()
   @Get('')
   async listAll() {
@@ -433,7 +448,7 @@ export class JobsController {
         },
         {
           model: Student,
-          attributes: ['id', 'name', 'headline', 'location'],
+          attributes: ['id', 'name', 'headline', 'location', 'profileImagePath'],
           include: [
             {model: User, attributes: ['email']},
             {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
@@ -485,7 +500,7 @@ export class JobsController {
         },
         {
           model: Student,
-          attributes: ['id', 'name', 'headline', 'location'],
+          attributes: ['id', 'name', 'headline', 'location', 'profileImagePath'],
           include: [
             {model: User, attributes: ['email']},
             {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
@@ -525,7 +540,7 @@ export class JobsController {
     const job = await this.requireOwnedJob(company, jobId);
 
     const student = await Student.findByPk(body.studentId, {
-      attributes: ['id', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship'],
+      attributes: ['id', 'userId', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship'],
       include: [
         {model: User, attributes: ['email']},
         {
@@ -567,13 +582,32 @@ export class JobsController {
           },
           {
             model: Student,
-            attributes: ['id', 'name', 'headline', 'location'],
+            attributes: ['id', 'name', 'headline', 'location', 'profileImagePath'],
             include: [
               {model: User, attributes: ['email']},
               {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
             ],
           },
         ],
+      });
+
+      await this.notifications.createOneBestEffort({
+        userId: student.userId,
+        type: 'JOB_INVITED',
+        title: 'New job invitation',
+        message: `${company.name} invited you to "${job.title}".`,
+        payload: {jobId},
+      });
+
+      await this.enqueueNotificationEmail({
+        event: 'job.invited',
+        recipientEmail: created?.student?.user?.email ?? '',
+        studentName: created?.student?.name ?? student.name,
+        companyName: created?.job?.company?.name ?? company.name,
+        jobTitle: created?.job?.title ?? job.title,
+        jobId: created?.job?.id ?? job.id,
+        applicationId: application.id,
+        invitedAtIso: application.createdAt.toISOString(),
       });
 
       return {
@@ -609,7 +643,7 @@ export class JobsController {
         },
         {
           model: Student,
-          attributes: ['id', 'name', 'headline', 'location'],
+          attributes: ['id', 'userId', 'name', 'headline', 'location', 'profileImagePath'],
           include: [
             {model: User, attributes: ['email']},
             {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
@@ -665,6 +699,31 @@ export class JobsController {
 
     await application.save();
 
+    const studentUserId = Number((application.student as any)?.userId);
+    await this.notifications.createOneBestEffort({
+      userId: studentUserId,
+      type: 'JOB_STATUS_CHANGED',
+      title: 'Application status updated',
+      message: `Your application for "${(application.job as any)?.title ?? 'this job'}" is now ${this.applicationStatusLabel(body.status)}.`,
+      payload: {jobId: Number(application.jobId)},
+    });
+
+    if (COMPANY_TO_STUDENT_ALERT_STATUSES.includes(body.status)) {
+      await this.enqueueNotificationEmail({
+        event: 'job.status_updated',
+        recipientEmail: application.student?.user?.email ?? '',
+        studentName: application.student?.name ?? '',
+        companyName: application.job?.company?.name ?? company.name,
+        jobTitle: application.job?.title ?? '',
+        status: body.status,
+        applicationId: application.id,
+        updatedAtIso: application.updatedAt.toISOString(),
+        hrInterviewAtIso: application.hrInterviewAt ? application.hrInterviewAt.toISOString() : null,
+        hrInterviewLocation: application.hrInterviewLocation ?? null,
+        hrInterviewInfo: application.hrInterviewInfo ?? null,
+      });
+    }
+
     return {
       data: mapJobApplication(application, true),
     };
@@ -688,7 +747,7 @@ export class JobsController {
         {
           model: Job,
           attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
-          include: [{model: Company, attributes: ['id', 'name']}],
+          include: [{model: Company, attributes: ['id', 'name', 'userId'], include: [{model: User, attributes: ['email']}]}],
         },
       ],
     });
@@ -704,6 +763,27 @@ export class JobsController {
     application.status = body.decision === 'ACCEPT' ? 'APPLIED' : 'DECLINED';
     application.rejectionReason = null;
     await application.save();
+
+    const ownerUserId = Number((application.job as any)?.company?.userId);
+    const decisionLabel = body.decision === 'ACCEPT' ? 'accepted' : 'declined';
+    await this.notifications.createOneBestEffort({
+      userId: ownerUserId,
+      type: 'JOB_INVITE_RESPONSE',
+      title: 'Invitation response received',
+      message: `${student.name} ${decisionLabel} your invitation for "${(application.job as any)?.title ?? 'this job'}".`,
+      payload: {jobId: Number(application.jobId)},
+    });
+
+    await this.enqueueNotificationEmail({
+      event: 'job.invitation_response',
+      recipientEmail: application.job?.company?.user?.email ?? '',
+      companyName: application.job?.company?.name ?? '',
+      studentName: student.name,
+      jobTitle: application.job?.title ?? '',
+      applicationId: application.id,
+      decision: body.decision,
+      respondedAtIso: application.updatedAt.toISOString(),
+    });
 
     return {
       data: mapJobApplication(application, false),
@@ -822,7 +902,7 @@ export class JobsController {
     }
 
     const job = await Job.findByPk(jobId, {
-      include: [{model: Company, attributes: ['id', 'name']}],
+      include: [{model: Company, attributes: ['id', 'name', 'userId'], include: [{model: User, attributes: ['email']}]}],
       attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
     });
     if (!job) throw new NotFoundError('Job not found.');
@@ -845,9 +925,29 @@ export class JobsController {
           {
             model: Job,
             attributes: ['id', 'companyId', 'title', 'location', 'workMode', 'isJob', 'isInternship', 'postedAt'],
-            include: [{model: Company, attributes: ['id', 'name']}],
+            include: [{model: Company, attributes: ['id', 'name'], include: [{model: User, attributes: ['email']}]}],
           },
         ],
+      });
+
+      const companyUserId = Number((job.company as any)?.userId);
+      await this.notifications.createOneBestEffort({
+        userId: companyUserId,
+        type: 'JOB_NEW_APPLICATION',
+        title: 'New job application',
+        message: `${student.name} applied for "${job.title}".`,
+        payload: {jobId: job.id},
+      });
+
+      await this.enqueueNotificationEmail({
+        event: 'job.applied',
+        recipientEmail: created?.job?.company?.user?.email ?? job.company?.user?.email ?? '',
+        companyName: created?.job?.company?.name ?? job.company?.name ?? '',
+        studentName: student.name,
+        jobTitle: created?.job?.title ?? job.title,
+        jobId: created?.job?.id ?? job.id,
+        applicationId: application.id,
+        appliedAtIso: application.createdAt.toISOString(),
       });
 
       return {
@@ -866,6 +966,28 @@ export class JobsController {
       return true;
     }
     return APPLICATION_TRANSITIONS[current].includes(next);
+  }
+
+  private applicationStatusLabel(status: ApplicationStatus): string {
+    if (status === 'INVITED') return 'Invited';
+    if (status === 'APPLIED') return 'Applied';
+    if (status === 'APPROVED') return 'Approved';
+    if (status === 'HR_INTERVIEW') return 'HR Interview';
+    if (status === 'TECHNICAL_INTERVIEW') return 'Technical Interview';
+    if (status === 'DONE') return 'Done';
+    if (status === 'DECLINED') return 'Declined';
+    if (status === 'REJECTED') return 'Rejected';
+    return status;
+  }
+
+  private async enqueueNotificationEmail(jobData: NotificationEmailJobData): Promise<void> {
+    await enqueueNotificationEmailJob(jobData).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('[notification-email] Failed to send job notification email', {
+        event: jobData.event,
+        error: message,
+      });
+    });
   }
 
   private buildStatsByJobId(
@@ -951,7 +1073,7 @@ export class JobsController {
     }
 
     return Student.findAll({
-      attributes: ['id', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship'],
+      attributes: ['id', 'name', 'headline', 'location', 'seekingJob', 'seekingInternship', 'profileImagePath'],
       include: includes,
       order: [['name', 'ASC']],
     });

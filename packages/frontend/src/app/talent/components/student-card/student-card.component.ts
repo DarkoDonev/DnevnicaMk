@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
 
 import {EvaluationStatus, Student} from '../../models';
+import {environment} from '../../../../environments/environment';
 
 @Component({
   selector: 'app-student-card',
@@ -64,5 +65,13 @@ export class StudentCardComponent {
   requestDetails(): void {
     if (!this.canViewDetails) return;
     this.detailsRequested.emit(this.student);
+  }
+
+  profileImageHref(profileImageUrl: string | undefined): string {
+    if (!profileImageUrl) return '';
+    if (/^https?:\/\//i.test(profileImageUrl)) return profileImageUrl;
+    const api = environment.apiUrl;
+    const base = api.endsWith('/api') ? api.slice(0, -4) : api;
+    return `${base}${profileImageUrl}`;
   }
 }

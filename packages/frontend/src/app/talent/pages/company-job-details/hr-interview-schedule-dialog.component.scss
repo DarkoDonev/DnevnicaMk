@@ -4,6 +4,18 @@
   gap: 8px;
 }
 
+.date-time-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .full {
   width: 100%;
+}
+
+@media (max-width: 640px) {
+  .date-time-row {
+    grid-template-columns: 1fr;
+  }
 }

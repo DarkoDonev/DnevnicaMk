@@ -35,6 +35,10 @@ export class StudentDirectoryService {
     return this.http.get<StudentResponse>(`${environment.apiUrl}/students/me`).pipe(map((r) => r.data));
   }
 
+  getStudentById(studentId: number): Observable<Student> {
+    return this.http.get<StudentResponse>(`${environment.apiUrl}/students/${studentId}`).pipe(map((r) => r.data));
+  }
+
   updateMe(profile: {
     name: string;
     headline?: string;
@@ -53,6 +57,12 @@ export class StudentDirectoryService {
     const fd = new FormData();
     fd.append('cv', file);
     return this.http.put<StudentResponse>(`${environment.apiUrl}/students/me/cv`, fd).pipe(map((r) => r.data));
+  }
+
+  uploadProfileImage(file: File): Observable<Student> {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return this.http.put<StudentResponse>(`${environment.apiUrl}/students/me/photo`, fd).pipe(map((r) => r.data));
   }
 
   addOrUpdateSkill(skillName: string, yearsOfExperience: number): Observable<Student> {
@@ -82,5 +92,12 @@ export class StudentDirectoryService {
 
   getMyEvaluation(): Observable<StudentAiEvaluationDetails> {
     return this.http.get<StudentEvaluationResponse>(`${environment.apiUrl}/students/me/github-evaluation`).pipe(map((r) => r.data));
+  }
+
+  runMyEvaluation(force = false): Observable<StudentAiEvaluationRunResult> {
+    const q = force ? '?force=true' : '';
+    return this.http
+      .post<StudentEvaluationRunResponse>(`${environment.apiUrl}/students/me/github-evaluation/run${q}`, {})
+      .pipe(map((r) => r.data));
   }
 }

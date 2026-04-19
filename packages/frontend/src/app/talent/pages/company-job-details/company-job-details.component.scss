@@ -157,6 +157,13 @@
   font-size: 12px;
 }
 
+.profile-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .ai-score {
   margin-top: 6px;
   font-size: 12px;
@@ -169,6 +176,11 @@
   color: rgba(15, 23, 42, 0.72);
   line-height: 1.45;
   font-size: 13px;
+}
+
+.ai-summary-empty {
+  color: rgba(15, 23, 42, 0.58);
+  font-style: italic;
 }
 
 .interview-details {

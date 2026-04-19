@@ -19,6 +19,7 @@ import {LoginComponent} from './talent/pages/login/login.component';
 import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
 import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
+import {CompanyStudentDetailsComponent} from './talent/pages/company-student-details/company-student-details.component';
 import {StudentAiEvaluationDialogComponent} from './talent/pages/company-dashboard/student-ai-evaluation-dialog.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
 import {NewJobPostDialogComponent} from './talent/pages/company-jobs/new-job-post-dialog.component';
@@ -43,6 +44,7 @@ import {HrInterviewScheduleDialogComponent} from './talent/pages/company-job-det
     RegisterComponent,
     CompanyDashboardComponent,
     CompanyProfileComponent,
+    CompanyStudentDetailsComponent,
     StudentAiEvaluationDialogComponent,
     CompanyJobsComponent,
     NewJobPostDialogComponent,

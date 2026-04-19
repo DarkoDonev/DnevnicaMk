@@ -142,12 +142,28 @@ export class StudentGithubEvaluationService {
   private readonly repoLimit = this.readEnvInt('AI_EVAL_REPO_LIMIT', 5, 1, 10);
   private readonly commitWindowDays = this.readEnvInt('AI_EVAL_COMMIT_WINDOW_DAYS', 90, 7, 365);
   private readonly geminiModel = process.env['GEMINI_MODEL']?.trim() || 'gemini-2.5-flash';
-  private readonly geminiApiKey = process.env['GEMINI_API_KEY']?.trim() || '';
+  private readonly geminiApiKey =
+    process.env['GEMINI_API_KEY']?.trim() ||
+    process.env['GOOGLE_AI_STUDIO_API_KEY']?.trim() ||
+    '';
   private readonly githubToken = process.env['GITHUB_TOKEN']?.trim() || '';
 
   async runForCompany(studentId: number, force: boolean): Promise<StudentAiEvaluationRunResult> {
     const student = await Student.findByPk(studentId);
     if (!student) throw new NotFoundError('Student not found.');
+
+    return this.runForStudent(student, force);
+  }
+
+  async runForStudentUser(userId: number, force: boolean): Promise<StudentAiEvaluationRunResult> {
+    const student = await Student.findOne({where: {userId}});
+    if (!student) throw new NotFoundError('Student not found.');
+
+    return this.runForStudent(student, force);
+  }
+
+  private async runForStudent(student: Student, force: boolean): Promise<StudentAiEvaluationRunResult> {
+    console.info(`[ai-eval] run started studentId=${student.id} force=${force}`);
 
     const githubUrl = (student.githubUrl ?? '').trim();
     if (!githubUrl) {
@@ -167,6 +183,7 @@ export class StudentGithubEvaluationService {
       record.cacheExpiresAt instanceof Date &&
       record.cacheExpiresAt.getTime() > now.getTime()
     ) {
+      console.info(`[ai-eval] cache hit studentId=${student.id} cacheExpiresAt=${record.cacheExpiresAt.toISOString()}`);
       return {
         ...this.toDetails(record),
         fromCache: true,
@@ -205,6 +222,9 @@ export class StudentGithubEvaluationService {
       record.lastError = null;
       await record.save();
 
+      console.info(
+        `[ai-eval] run finished studentId=${student.id} overall=${record.overallScore ?? 'n/a'} status=${record.status}`,
+      );
       return {
         ...this.toDetails(record),
         fromCache: false,
@@ -212,6 +232,7 @@ export class StudentGithubEvaluationService {
     } catch (error) {
       const message = this.toSafeError(error);
       await this.upsertFailed(student.id, message);
+      console.error(`[ai-eval] run failed studentId=${student.id} message="${message}"`);
 
       const failed = await StudentGithubEvaluation.findOne({where: {studentId: student.id}});
       return {
@@ -451,7 +472,7 @@ export class StudentGithubEvaluationService {
     windowDays: number;
   }): Promise<GeminiAnalysis> {
     if (!this.geminiApiKey) {
-      throw new Error('Missing GEMINI_API_KEY environment variable.');
+      throw new Error('Missing GEMINI_API_KEY (or GOOGLE_AI_STUDIO_API_KEY) environment variable.');
     }
 
     const snippetPayload = input.repos
@@ -477,7 +498,8 @@ export class StudentGithubEvaluationService {
       'Ти си технички евалуатор за junior/mid software candidates.',
       'Врати САМО JSON објект без markdown или дополнителен текст.',
       'Јазик: македонски.',
-      'Задача: кратка и искрена AI евалуација на coding style и документација за GitHub профил, користејќи ги дадените податоци.',
+      'Задача: искрена и подетална AI евалуација на coding style и документација за GitHub профил, користејќи ги дадените податоци.',
+      'summaryMk треба да биде 4-6 реченици (приближно 450-900 карактери), јасна и професионална.',
       'Ако има малку сигнал (мало количество код/commit), експлицитно кажи го тоа во summaryMk.',
       'JSON schema:',
       '{',
@@ -503,6 +525,10 @@ export class StudentGithubEvaluationService {
     ].join('\n');
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.geminiModel)}:generateContent?key=${encodeURIComponent(this.geminiApiKey)}`;
+    const startedAt = Date.now();
+    console.info(
+      `[ai-eval][gemini] request model=${this.geminiModel} username=${input.username} repos=${repoPayload.length} snippets=${snippetPayload.length}`,
+    );
 
     const response = await fetch(url, {
       method: 'POST',
@@ -517,9 +543,15 @@ export class StudentGithubEvaluationService {
         },
       }),
     });
+    console.info(
+      `[ai-eval][gemini] response status=${response.status} ok=${response.ok} username=${input.username} durationMs=${Date.now() - startedAt}`,
+    );
 
     if (!response.ok) {
       const text = await response.text();
+      console.error(
+        `[ai-eval][gemini] non-ok status=${response.status} username=${input.username} body=${text.slice(0, 300)}`,
+      );
       throw new Error(`Gemini API error (${response.status}): ${text.slice(0, 300)}`);
     }
 
@@ -544,6 +576,9 @@ export class StudentGithubEvaluationService {
     try {
       parsed = JSON.parse(normalized);
     } catch {
+      console.error(
+        `[ai-eval][gemini] invalid-json username=${input.username} preview=${normalized.slice(0, 200)}`,
+      );
       throw new Error('Gemini response is not valid JSON.');
     }
 
@@ -778,8 +813,7 @@ export class StudentGithubEvaluationService {
     if (!summary) return null;
     const trimmed = summary.trim();
     if (!trimmed) return null;
-    if (trimmed.length <= 180) return trimmed;
-    return `${trimmed.slice(0, 177)}...`;
+    return trimmed;
   }
 
   private toStringArray(input: unknown, maxItems: number): string[] {

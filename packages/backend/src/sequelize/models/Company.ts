@@ -25,6 +25,12 @@ export class Company extends Model<Company> {
   @Column({type: DataType.STRING(300), allowNull: true})
   declare websiteUrl?: string | null;
 
+  @Column({type: DataType.STRING(500), allowNull: true})
+  declare profileImagePath?: string | null;
+
+  @Column({type: DataType.STRING(260), allowNull: true})
+  declare profileImageOriginalName?: string | null;
+
   @Column({type: DataType.ENUM('pending', 'approved', 'rejected'), allowNull: false, defaultValue: 'pending'})
   declare registrationStatus: CompanyRegistrationStatus;
 

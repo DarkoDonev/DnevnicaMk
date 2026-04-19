@@ -1,4 +1,7 @@
 <mat-card class="job-card" appearance="outlined">
+  <span class="status-pill" *ngIf="showApplyAction && applyStatusLabel" [ngClass]="applyStatusClass">
+    {{ applyStatusLabel }}
+  </span>
   <mat-card-header>
     <div class="badge" mat-card-avatar aria-hidden="true">
       <mat-icon aria-hidden="true">work</mat-icon>
@@ -16,6 +19,7 @@
   </mat-card-header>
 
   <mat-card-content>
+    <div class="posted" *ngIf="postedAtLabel">Posted {{ postedAtLabel }}</div>
     <p class="desc">{{ job.description }}</p>
 
     <div class="reqs">
@@ -29,12 +33,11 @@
     </div>
   </mat-card-content>
 
-<mat-card-actions align="end">
+  <mat-card-actions align="end">
     <button mat-stroked-button type="button" *ngIf="showDetailsAction" (click)="onViewDetails()">
       <mat-icon aria-hidden="true">visibility</mat-icon>
       <span>Details</span>
     </button>
-    <span class="apply-status" *ngIf="showApplyAction && applyStatusLabel">{{ applyStatusLabel }}</span>
     <button
       mat-flat-button
       color="primary"
@@ -46,6 +49,5 @@
       <mat-icon aria-hidden="true">{{ applyLoading ? 'hourglass_top' : 'send' }}</mat-icon>
       <span>{{ applyLoading ? 'Applying...' : applyStatusLabel ? 'Applied' : 'Apply' }}</span>
     </button>
-    <div class="posted" *ngIf="postedAtLabel">Posted {{ postedAtLabel }}</div>
   </mat-card-actions>
 </mat-card>

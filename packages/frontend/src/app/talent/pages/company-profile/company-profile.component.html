@@ -1,13 +1,45 @@
 <div class="company-profile">
   <header class="hd">
-    <div class="eyebrow">Company Profile</div>
-    <h1 class="title">Your Company Details</h1>
-    <p class="subtitle">Basic account profile for your company.</p>
+    <div class="hd-left">
+      <div class="eyebrow">Company Profile</div>
+      <h1 class="title">Your Company Details</h1>
+      <p class="subtitle">Basic account profile for your company.</p>
+    </div>
+    <div class="hd-actions">
+      <a mat-flat-button color="primary" routerLink="/company/ai-evaluation">
+        <mat-icon aria-hidden="true">analytics</mat-icon>
+        AI GitHub Evaluation
+      </a>
+    </div>
   </header>
 
   <ng-container *ngIf="profile$ | async as profile; else loading">
     <mat-card class="card" appearance="outlined">
       <mat-card-content>
+        <div class="logo-block">
+          <div class="logo">
+            <img
+              *ngIf="profile.profileImageUrl; else companyInitials"
+              [src]="profileImageHref(profile.profileImageUrl)"
+              [alt]="profile.name + ' company photo'"
+              class="logo-img"
+            />
+            <ng-template #companyInitials>{{ initialsFor(profile.name) }}</ng-template>
+          </div>
+
+          <div class="logo-upload">
+            <div class="k">Company Photo</div>
+            <input
+              #photoInput
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              (change)="onProfileImageSelected(photoInput)"
+              [disabled]="isSaving"
+            />
+            <div class="hint">Allowed: JPG, PNG, WEBP. Max 5MB.</div>
+          </div>
+        </div>
+
         <div class="grid">
           <div class="item">
             <div class="k">Company Name</div>

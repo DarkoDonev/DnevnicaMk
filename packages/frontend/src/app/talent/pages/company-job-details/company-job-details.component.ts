@@ -7,6 +7,7 @@ import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, swi
 
 import {ApplicationStatus, CompanyJobDetails, JobApplication, JobPost, PotentialStudent} from '../../models';
 import {JobBoardService} from '../../services/job-board.service';
+import {StudentDirectoryService} from '../../services/student-directory.service';
 import {RejectApplicationDialogComponent} from '../company-jobs/reject-application-dialog.component';
 import {
   HrInterviewScheduleDialogComponent,
@@ -35,6 +36,7 @@ interface CompanyJobDetailsVm {
 })
 export class CompanyJobDetailsComponent {
   private readonly reload$ = new Subject<void>();
+  private readonly analyzingStudentIds = new Set<number>();
 
   readonly jobId$ = this.route.paramMap.pipe(
     map((params) => Number(params.get('jobId'))),
@@ -75,6 +77,7 @@ export class CompanyJobDetailsComponent {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly jobs: JobBoardService,
+    private readonly directory: StudentDirectoryService,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
   ) {}
@@ -83,6 +86,52 @@ export class CompanyJobDetailsComponent {
   trackApplication = (_: number, application: JobApplication) => application.id;
   trackPotential = (_: number, student: PotentialStudent) => student.id;
   trackSkill = (_: number, skill: PotentialStudent['skills'][number]) => skill.skillName;
+
+  isAnalyzingStudent(studentId: number | null | undefined): boolean {
+    if (!studentId) return false;
+    return this.analyzingStudentIds.has(studentId);
+  }
+
+  applicantEvaluationActionLabel(application: JobApplication): string {
+    if (this.isAnalyzingStudent(application.student?.id)) return 'Generating...';
+    if (application.student?.aiEvaluationPreview?.status === 'pending') return 'Running...';
+    if (application.student?.aiEvaluationPreview?.status === 'ready') return 'Re-run AI Summary';
+    return 'Generate AI Summary';
+  }
+
+  canRunApplicantEvaluation(application: JobApplication): boolean {
+    const studentId = application.student?.id;
+    if (!studentId) return false;
+    if (this.analyzingStudentIds.has(studentId)) return false;
+    if (application.student?.aiEvaluationPreview?.status === 'pending') return false;
+    return true;
+  }
+
+  runApplicantEvaluation(application: JobApplication): void {
+    const studentId = application.student?.id;
+    if (!studentId || !this.canRunApplicantEvaluation(application)) return;
+    const force = application.student?.aiEvaluationPreview?.status === 'ready';
+
+    this.analyzingStudentIds.add(studentId);
+    this.directory.runStudentEvaluation(studentId, force).subscribe({
+      next: (result) => {
+        const name = application.student?.name ?? 'Applicant';
+        const msg =
+          result.status === 'ready'
+            ? result.fromCache
+              ? `Used cached AI summary for ${name}.`
+              : `AI summary generated for ${name}.`
+            : `AI summary failed for ${name}.`;
+        this.snackBar.open(msg, 'Dismiss', {duration: 3200});
+        this.analyzingStudentIds.delete(studentId);
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        this.snackBar.open(this.toErrorMessage(err, 'Could not run AI summary.'), 'Dismiss', {duration: 3500});
+        this.analyzingStudentIds.delete(studentId);
+      },
+    });
+  }
 
   getActionsForStatus(status: ApplicationStatus): readonly ApplicationAction[] {
     switch (status) {

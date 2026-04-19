@@ -1,11 +1,10 @@
 import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {HttpErrorResponse} from '@angular/common/http';
 import {NonNullableFormBuilder, Validators} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {Router} from '@angular/router';
 import {catchError, map, of, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
 
 import {StudentDirectoryService} from '../../services/student-directory.service';
-import {AuthService} from '../../services/auth.service';
 import {Student, StudentAiEvaluationDetails} from '../../models';
 import {TechSkillsService} from '../../services/tech-skills.service';
 import {environment} from '../../../../environments/environment';
@@ -55,11 +54,10 @@ export class StudentProfileComponent implements OnDestroy {
   });
 
   isSaving = false;
+  isRunningEvaluation = false;
 
   constructor(
-    private readonly auth: AuthService,
     private readonly directory: StudentDirectoryService,
-    private readonly router: Router,
     private readonly fb: NonNullableFormBuilder,
     private readonly snackBar: MatSnackBar,
     private readonly skillService: TechSkillsService,
@@ -70,11 +68,6 @@ export class StudentProfileComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  logout(): void {
-    this.auth.logout();
-    void this.router.navigateByUrl('/login');
   }
 
   addSkill(): void {
@@ -150,6 +143,26 @@ export class StudentProfileComponent implements OnDestroy {
     });
   }
 
+  onProfileImageSelected(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.isSaving = true;
+    this.directory.uploadProfileImage(file).subscribe({
+      next: () => {
+        this.snackBar.open('Profile photo uploaded.', 'Dismiss', {duration: 2500});
+        this.isSaving = false;
+        input.value = '';
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Could not upload profile photo.';
+        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        this.isSaving = false;
+      },
+    });
+  }
+
   removeSkill(skillName: string): void {
     if (this.isSaving) return;
     this.isSaving = true;
@@ -164,6 +177,30 @@ export class StudentProfileComponent implements OnDestroy {
         const msg = err instanceof Error ? err.message : 'Could not remove skill.';
         this.snackBar.open(msg, 'Dismiss', {duration: 3500});
         this.isSaving = false;
+      },
+    });
+  }
+
+  runEvaluation(evaluation: StudentAiEvaluationDetails | null, hasGithubUrl: boolean): void {
+    if (!hasGithubUrl) {
+      this.snackBar.open('Please add your GitHub URL first, then save profile.', 'Dismiss', {duration: 3500});
+      return;
+    }
+    if (this.isRunningEvaluation || evaluation?.status === 'pending') return;
+
+    const force = evaluation?.status === 'ready';
+    this.isRunningEvaluation = true;
+
+    this.directory.runMyEvaluation(force).subscribe({
+      next: (result) => {
+        const msg = result.fromCache ? 'Used cached AI summary.' : 'AI summary generated.';
+        this.snackBar.open(msg, 'Dismiss', {duration: 2500});
+        this.isRunningEvaluation = false;
+        this.reload$.next();
+      },
+      error: (err: unknown) => {
+        this.snackBar.open(this.readErrorMessage(err, 'Could not run AI GitHub evaluation.'), 'Dismiss', {duration: 4000});
+        this.isRunningEvaluation = false;
       },
     });
   }
@@ -198,10 +235,20 @@ export class StudentProfileComponent implements OnDestroy {
 
   cvHref(cvUrl: string | undefined): string {
     if (!cvUrl) return '';
-    if (/^https?:\/\//i.test(cvUrl)) return cvUrl;
+    return this.staticAssetHref(cvUrl);
+  }
+
+  profileImageHref(profileImageUrl: string | undefined): string {
+    if (!profileImageUrl) return '';
+    return this.staticAssetHref(profileImageUrl);
+  }
+
+  private staticAssetHref(pathOrUrl: string): string {
+    if (!pathOrUrl) return '';
+    if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
     const api = environment.apiUrl;
     const base = api.endsWith('/api') ? api.slice(0, -4) : api;
-    return `${base}${cvUrl}`;
+    return `${base}${pathOrUrl}`;
   }
 
   evaluationStatusLabel(evaluation: StudentAiEvaluationDetails | null): string {
@@ -218,6 +265,12 @@ export class StudentProfileComponent implements OnDestroy {
     }
   }
 
+  evaluationActionLabel(evaluation: StudentAiEvaluationDetails | null): string {
+    if (this.isRunningEvaluation || evaluation?.status === 'pending') return 'Running...';
+    if (evaluation?.status === 'ready') return 'Re-run AI Summary';
+    return 'Generate AI Summary';
+  }
+
   formatIsoDate(iso: string | null): string {
     if (!iso) return 'N/A';
     const d = new Date(iso);
@@ -228,5 +281,16 @@ export class StudentProfileComponent implements OnDestroy {
   asPercent(v: number | null | undefined): string {
     if (v === null || v === undefined) return 'N/A';
     return `${Math.round(v * 100)}%`;
+  }
+
+  private readErrorMessage(err: unknown, fallback: string): string {
+    if (err instanceof HttpErrorResponse) {
+      const apiMsg = (err.error as any)?.message;
+      if (typeof apiMsg === 'string' && apiMsg.trim()) return apiMsg.trim();
+      if (err.status > 0) return `${fallback} (HTTP ${err.status})`;
+      return fallback;
+    }
+    if (err instanceof Error && err.message) return err.message;
+    return fallback;
   }
 }

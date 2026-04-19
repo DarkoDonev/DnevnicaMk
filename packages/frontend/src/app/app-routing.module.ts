@@ -4,6 +4,7 @@ import {LoginComponent} from './talent/pages/login/login.component';
 import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
 import {CompanyProfileComponent} from './talent/pages/company-profile/company-profile.component';
+import {CompanyStudentDetailsComponent} from './talent/pages/company-student-details/company-student-details.component';
 import {CompanyJobsComponent} from './talent/pages/company-jobs/company-jobs.component';
 import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/company-job-details.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
@@ -46,7 +47,10 @@ const routes: Routes = [
     children: [
       {path: '', pathMatch: 'full', redirectTo: 'profile'},
       {path: 'profile', component: CompanyProfileComponent},
-      {path: 'students', component: CompanyDashboardComponent},
+      {path: 'ai-evaluation/:studentId', component: CompanyStudentDetailsComponent},
+      {path: 'ai-evaluation', component: CompanyDashboardComponent},
+      {path: 'students/:studentId', redirectTo: 'ai-evaluation/:studentId'},
+      {path: 'students', pathMatch: 'full', redirectTo: 'ai-evaluation'},
       {path: 'jobs/:jobId', component: CompanyJobDetailsComponent},
       {path: 'jobs', component: CompanyJobsComponent},
     ],
@@ -56,7 +60,7 @@ const routes: Routes = [
     canActivate: [authRoleGuard],
     data: {role: 'student'},
     children: [
-      {path: '', pathMatch: 'full', redirectTo: 'profile'},
+      {path: '', pathMatch: 'full', redirectTo: 'jobs'},
       {path: 'profile', component: StudentProfileComponent},
       {path: 'jobs/:jobId', component: StudentJobDetailsComponent},
       {path: 'jobs', component: StudentJobsComponent},

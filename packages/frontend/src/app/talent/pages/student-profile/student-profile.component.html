@@ -5,12 +5,6 @@
       <h1 class="title">Your Skills Snapshot</h1>
       <p class="subtitle">A simple view of your profile and skill experience.</p>
     </div>
-    <div class="hd-actions">
-      <button mat-stroked-button type="button" (click)="logout()">
-        <mat-icon aria-hidden="true">logout</mat-icon>
-        Logout
-      </button>
-    </div>
   </header>
 
   <ng-container *ngIf="student$ | async as student; else loading">
@@ -18,7 +12,13 @@
       <mat-card class="card" appearance="outlined">
         <mat-card-header>
           <div class="avatar" mat-card-avatar aria-hidden="true">
-            {{ initialsFor(student.name) }}
+            <img
+              *ngIf="student.profileImageUrl; else studentInitials"
+              [src]="profileImageHref(student.profileImageUrl)"
+              [alt]="student.name + ' profile photo'"
+              class="avatar-img"
+            />
+            <ng-template #studentInitials>{{ initialsFor(student.name) }}</ng-template>
           </div>
           <mat-card-title class="card-title">{{ student.name }}</mat-card-title>
           <mat-card-subtitle>{{ student.headline }}</mat-card-subtitle>
@@ -87,6 +87,23 @@
                   Save Profile
                 </button>
               </form>
+
+              <div class="cv">
+                <div class="section-hd">Profile Photo</div>
+                <div class="photo-row" *ngIf="student.profileImageUrl">
+                  <img [src]="profileImageHref(student.profileImageUrl)" [alt]="student.name + ' profile photo'" class="photo-preview" />
+                </div>
+                <div class="cv-upload">
+                  <input
+                    #photoInput
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    (change)="onProfileImageSelected(photoInput)"
+                    [disabled]="isSaving"
+                  />
+                </div>
+                <div class="cv-hint">Allowed: JPG, PNG, WEBP. Max 5MB.</div>
+              </div>
 
               <div class="cv">
                 <div class="section-hd">CV</div>
@@ -158,7 +175,22 @@
               <span class="eval-pill" [ngClass]="'st-' + (evaluation?.status ?? 'none')">
                 {{ evaluationStatusLabel(evaluation) }}
               </span>
-              <span class="eval-date">Last analyzed: {{ formatIsoDate(evaluation?.lastAnalyzedAt ?? null) }}</span>
+              <div class="eval-controls">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="runEvaluation(evaluation, !!student.contact.githubUrl)"
+                  [disabled]="isRunningEvaluation || evaluation?.status === 'pending' || !student.contact.githubUrl"
+                >
+                  <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+                  {{ evaluationActionLabel(evaluation) }}
+                </button>
+                <span class="eval-date">Last analyzed: {{ formatIsoDate(evaluation?.lastAnalyzedAt ?? null) }}</span>
+              </div>
+            </div>
+
+            <div class="eval-hint" *ngIf="!student.contact.githubUrl">
+              Add your GitHub URL in Profile and click <strong>Save Profile</strong> to enable AI summary.
             </div>
 
             <div class="eval-error" *ngIf="evaluation?.lastError">{{ evaluation?.lastError }}</div>

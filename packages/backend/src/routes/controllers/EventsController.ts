@@ -12,8 +12,10 @@ import {Op} from 'sequelize';
 import {IsDateString, IsOptional, IsString, IsUrl, MaxLength, MinLength} from 'class-validator';
 
 import {buildDedupeKey} from '../../services/EventScraperService';
+import {NotificationsService} from '../../services/NotificationsService';
 import {Company} from '../../sequelize/models/Company';
 import {Event} from '../../sequelize/models/Event';
+import {User} from '../../sequelize/models/User';
 
 class CreateCompanyEventBody {
   @IsString()
@@ -62,6 +64,8 @@ function mapEvent(event: Event) {
 
 @JsonController('/api/events')
 export class EventsController {
+  private readonly notifications = new NotificationsService();
+
   @Authorized()
   @Get('')
   async listUpcoming() {
@@ -139,6 +143,28 @@ export class EventsController {
     const created = await Event.findByPk(event.id, {
       include: [{model: Company, attributes: ['id', 'name'], required: false}],
     });
+
+    const recipients = await User.findAll({
+      where: {
+        role: {
+          [Op.in]: ['student', 'company'],
+        },
+        id: {
+          [Op.ne]: Number(user?.sub),
+        },
+      },
+      attributes: ['id'],
+    });
+
+    await this.notifications.createManyBestEffort(
+      recipients.map((recipient) => ({
+        userId: recipient.id,
+        type: 'EVENT_PUBLISHED' as const,
+        title: 'New event published',
+        message: `${company.name} published "${title}".`,
+        payload: {eventUrl},
+      })),
+    );
 
     return {
       data: mapEvent(created ?? event),

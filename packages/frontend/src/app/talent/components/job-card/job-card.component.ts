@@ -35,6 +35,20 @@ export class JobCardComponent {
     return 'Unspecified';
   }
 
+  get applyStatusClass(): string {
+    const raw = (this.applyStatusLabel ?? '').toLowerCase();
+    if (!raw) return 'st-default';
+    if (raw.includes('approved') || raw.includes('done')) return 'st-approved';
+    if (raw.includes('hr interview') || raw.includes('technical interview') || raw.includes('interview')) {
+      return 'st-interview';
+    }
+    if (raw.includes('invited')) return 'st-invited';
+    if (raw.includes('declined')) return 'st-declined';
+    if (raw.includes('rejected')) return 'st-rejected';
+    if (raw.includes('applied')) return 'st-applied';
+    return 'st-default';
+  }
+
   onApply(): void {
     this.applyClick.emit(this.job.id);
   }

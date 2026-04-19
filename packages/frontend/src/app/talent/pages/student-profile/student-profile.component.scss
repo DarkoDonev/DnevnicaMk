@@ -58,6 +58,13 @@
   border-radius: 14px;
 }
 
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
 .grid {
   margin-top: 10px;
   display: grid;
@@ -117,6 +124,19 @@
   gap: 8px;
   margin-bottom: 8px;
   color: rgba(15, 23, 42, 0.75);
+}
+
+.photo-row {
+  margin-bottom: 8px;
+}
+
+.photo-preview {
+  width: 92px;
+  height: 92px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12);
 }
 
 .cv-upload input[type='file'] {
@@ -218,6 +238,17 @@
   flex-wrap: wrap;
 }
 
+.eval-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.eval-controls button {
+  border-radius: 999px;
+}
+
 .eval-pill {
   display: inline-flex;
   align-items: center;
@@ -251,6 +282,12 @@
 .eval-date {
   font-size: 12px;
   color: rgba(15, 23, 42, 0.6);
+}
+
+.eval-hint {
+  margin-top: -4px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.62);
 }
 
 .eval-error {

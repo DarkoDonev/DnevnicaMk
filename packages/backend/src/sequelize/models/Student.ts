@@ -43,6 +43,12 @@ export class Student extends Model<Student> {
   @Column({type: DataType.STRING(260), allowNull: true})
   declare cvOriginalName?: string | null;
 
+  @Column({type: DataType.STRING(500), allowNull: true})
+  declare profileImagePath?: string | null;
+
+  @Column({type: DataType.STRING(260), allowNull: true})
+  declare profileImageOriginalName?: string | null;
+
   @Column({type: DataType.BOOLEAN, allowNull: false, defaultValue: false})
   declare seekingJob: boolean;
 
