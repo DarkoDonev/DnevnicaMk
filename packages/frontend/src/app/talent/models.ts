@@ -145,12 +145,18 @@ export interface JobApplicationStudentSummary {
   email: string;
   headline?: string;
   location?: string;
+  aiEvaluationPreview?: StudentAiEvaluationPreview;
 }
 
 export interface JobApplication {
   id: number;
   status: ApplicationStatus;
   rejectionReason?: string;
+  hrInterview?: {
+    atIso: string;
+    location: string;
+    info?: string;
+  };
   createdAtIso: string;
   updatedAtIso: string;
   job: JobApplicationJobSummary;
@@ -167,12 +173,17 @@ export interface PotentialStudent {
   location: string;
   seekingJob: boolean;
   seekingInternship: boolean;
+  aiEvaluationPreview?: StudentAiEvaluationPreview;
   skills: StudentSkill[];
 }
 
 export interface CompanyJobDetails {
   job: JobPost;
   applications: JobApplication[];
+}
+
+export interface StudentJobDetails {
+  job: JobPost;
 }
 
 export interface EventItem {

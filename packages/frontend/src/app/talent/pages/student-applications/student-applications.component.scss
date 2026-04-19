@@ -126,6 +126,26 @@
   font-size: 12px;
 }
 
+.interview {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  background: rgba(239, 246, 255, 0.82);
+  padding: 10px;
+  color: rgba(15, 23, 42, 0.78);
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.interview-hd {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: rgba(30, 64, 175, 0.92);
+}
+
 .reason {
   margin-top: 12px;
   border-radius: 12px;

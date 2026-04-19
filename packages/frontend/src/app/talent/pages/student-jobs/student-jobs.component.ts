@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {NonNullableFormBuilder} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
+import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
@@ -82,6 +83,7 @@ export class StudentJobsComponent {
     private readonly jobs: JobBoardService,
     private readonly skillService: TechSkillsService,
     private readonly snackBar: MatSnackBar,
+    private readonly router: Router,
   ) {}
 
   trackJob = (_: number, j: JobPost) => j.id;
@@ -129,6 +131,10 @@ export class StudentJobsComponent {
         this.applyingJobId = null;
       },
     });
+  }
+
+  openJobDetails(jobId: number): void {
+    void this.router.navigate(['/student/jobs', jobId]);
   }
 
   private applyFilters(jobs: readonly JobPost[], filters: FiltersValue): readonly JobPost[] {

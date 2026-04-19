@@ -60,10 +60,12 @@
           *ngFor="let j of vm.jobs; trackBy: trackJob"
           [job]="j"
           [showApplyAction]="true"
+          [showDetailsAction]="true"
           [applyLoading]="applyingJobId === j.id"
           [applyDisabled]="!!vm.applicationByJobId.get(j.id) || applyingJobId !== null"
           [applyStatusLabel]="vm.applicationByJobId.get(j.id) ? statusLabel(vm.applicationByJobId.get(j.id)!.status) : null"
           (applyClick)="applyToJob(j.id, !!vm.applicationByJobId.get(j.id))"
+          (detailsClick)="openJobDetails(j.id)"
         ></app-job-card>
       </div>
     </ng-container>

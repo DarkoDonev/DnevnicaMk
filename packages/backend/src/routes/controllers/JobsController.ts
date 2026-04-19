@@ -13,10 +13,12 @@ import {
 } from 'routing-controllers';
 import {
   ArrayMinSize,
+  IsDateString,
   IsArray,
   IsBoolean,
   IsIn,
   IsInt,
+  MaxLength,
   IsOptional,
   IsString,
   Max,
@@ -33,6 +35,7 @@ import {ApplicationStatus, JobApplication} from '../../sequelize/models/JobAppli
 import {Job} from '../../sequelize/models/Job';
 import {JobRequirement} from '../../sequelize/models/JobRequirement';
 import {Student} from '../../sequelize/models/Student';
+import {StudentGithubEvaluation} from '../../sequelize/models/StudentGithubEvaluation';
 import {StudentSkill} from '../../sequelize/models/StudentSkill';
 import {TechSkill} from '../../sequelize/models/TechSkill';
 import {User} from '../../sequelize/models/User';
@@ -142,6 +145,20 @@ class UpdateApplicationStatusBody {
   @IsOptional()
   @IsString()
   rejectionReason?: string;
+
+  @IsOptional()
+  @IsDateString()
+  hrInterviewAtIso?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(260)
+  hrInterviewLocation?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  hrInterviewInfo?: string;
 }
 
 class InviteStudentBody {
@@ -228,6 +245,32 @@ function mapJob(j: Job, stats?: JobStats) {
   return mapped;
 }
 
+function summarySnippet(summary: string | null | undefined): string | null {
+  if (!summary) return null;
+  const trimmed = summary.trim();
+  if (!trimmed) return null;
+  if (trimmed.length <= 180) return trimmed;
+  return `${trimmed.slice(0, 177)}...`;
+}
+
+function mapEvaluationPreviewFromStudent(student: any) {
+  const evaluation = student?.githubEvaluation as StudentGithubEvaluation | null | undefined;
+  if (!evaluation) return undefined;
+
+  const rawStatus = String((evaluation as any).status ?? '');
+  const status =
+    rawStatus === 'pending' || rawStatus === 'ready' || rawStatus === 'failed'
+      ? rawStatus
+      : 'none';
+
+  return {
+    status,
+    overallScore: evaluation.overallScore ?? null,
+    summarySnippet: summarySnippet(evaluation.summaryMk ?? null),
+    lastAnalyzedAt: evaluation.lastAnalyzedAt ? evaluation.lastAnalyzedAt.toISOString() : null,
+  };
+}
+
 function mapJobApplication(app: JobApplication, includeStudent: boolean) {
   const job = app.job as any;
   const student = app.student as any;
@@ -250,6 +293,14 @@ function mapJobApplication(app: JobApplication, includeStudent: boolean) {
     },
   };
 
+  if (app.hrInterviewAt && app.hrInterviewLocation) {
+    mapped.hrInterview = {
+      atIso: app.hrInterviewAt.toISOString(),
+      location: app.hrInterviewLocation,
+      info: app.hrInterviewInfo || undefined,
+    };
+  }
+
   if (includeStudent) {
     mapped.student = {
       id: student?.id ?? app.studentId,
@@ -257,6 +308,7 @@ function mapJobApplication(app: JobApplication, includeStudent: boolean) {
       email: student?.user?.email ?? '',
       headline: student?.headline ?? '',
       location: student?.location ?? '',
+      aiEvaluationPreview: mapEvaluationPreviewFromStudent(student),
     };
   }
 
@@ -272,6 +324,7 @@ function mapPotentialStudent(student: Student) {
     location: student.location,
     seekingJob: !!student.seekingJob,
     seekingInternship: !!student.seekingInternship,
+    aiEvaluationPreview: mapEvaluationPreviewFromStudent(student),
     skills: (student.studentSkills ?? []).map((skill) => ({
       skillName: (skill.techSkill as any)?.name ?? '',
       yearsOfExperience: skill.yearsOfExperience,
@@ -298,6 +351,34 @@ export class JobsController {
 
     return {
       data: jobs.map((j) => mapJob(j)),
+    };
+  }
+
+  @Authorized('student')
+  @Get('/student/:jobId')
+  async getStudentJobDetails(@Param('jobId') jobIdParam: string) {
+    const jobId = Number(jobIdParam);
+    if (!Number.isInteger(jobId) || jobId <= 0) {
+      throw new BadRequestError('Invalid job id.');
+    }
+
+    const job = await Job.findByPk(jobId, {
+      include: [
+        {model: Company, attributes: ['id', 'name', 'location', 'websiteUrl']},
+        {
+          model: JobRequirement,
+          attributes: ['minYears'],
+          include: [{model: TechSkill, attributes: ['name']}],
+        },
+      ],
+    });
+
+    if (!job) throw new NotFoundError('Job not found.');
+
+    return {
+      data: {
+        job: mapJob(job),
+      },
     };
   }
 
@@ -329,7 +410,7 @@ export class JobsController {
       attributes: ['jobId', 'studentId', 'status'],
     });
 
-    const students = await this.fetchStudentsForMatching(false);
+    const students = await this.fetchStudentsForMatching(false, false);
     const statsByJobId = this.buildStatsByJobId(jobs, applications, students);
 
     return {
@@ -353,7 +434,10 @@ export class JobsController {
         {
           model: Student,
           attributes: ['id', 'name', 'headline', 'location'],
-          include: [{model: User, attributes: ['email']}],
+          include: [
+            {model: User, attributes: ['email']},
+            {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
+          ],
         },
       ],
       order: [['updatedAt', 'DESC']],
@@ -374,7 +458,7 @@ export class JobsController {
     }
 
     const job = await this.requireOwnedJob(company, jobId);
-    const potentialStudents = await this.getPotentialStudentsForJob(job, true);
+    const potentialStudents = await this.getPotentialStudentsForJob(job, true, true);
 
     return {
       data: potentialStudents.map((student) => mapPotentialStudent(student)),
@@ -402,13 +486,16 @@ export class JobsController {
         {
           model: Student,
           attributes: ['id', 'name', 'headline', 'location'],
-          include: [{model: User, attributes: ['email']}],
+          include: [
+            {model: User, attributes: ['email']},
+            {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
+          ],
         },
       ],
       order: [['updatedAt', 'DESC']],
     });
 
-    const potentialStudents = await this.getPotentialStudentsForJob(job, true);
+    const potentialStudents = await this.getPotentialStudentsForJob(job, true, true);
 
     return {
       data: {
@@ -481,7 +568,10 @@ export class JobsController {
           {
             model: Student,
             attributes: ['id', 'name', 'headline', 'location'],
-            include: [{model: User, attributes: ['email']}],
+            include: [
+              {model: User, attributes: ['email']},
+              {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
+            ],
           },
         ],
       });
@@ -520,7 +610,10 @@ export class JobsController {
         {
           model: Student,
           attributes: ['id', 'name', 'headline', 'location'],
-          include: [{model: User, attributes: ['email']}],
+          include: [
+            {model: User, attributes: ['email']},
+            {model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']},
+          ],
         },
       ],
     });
@@ -532,8 +625,34 @@ export class JobsController {
       throw new UnauthorizedError('You cannot update applications for jobs from another company.');
     }
 
-    if (!this.canTransition(application.status, body.status)) {
+    const isHrReschedule = application.status === 'HR_INTERVIEW' && body.status === 'HR_INTERVIEW';
+    if (!this.canTransition(application.status, body.status, isHrReschedule)) {
       throw new BadRequestError(`Invalid status transition from ${application.status} to ${body.status}.`);
+    }
+
+    if (body.status === 'HR_INTERVIEW') {
+      const interviewLocation = (body.hrInterviewLocation ?? '').trim();
+      const interviewAtIso = (body.hrInterviewAtIso ?? '').trim();
+      const interviewInfo = (body.hrInterviewInfo ?? '').trim();
+
+      if (!interviewLocation) {
+        throw new BadRequestError('HR interview location is required.');
+      }
+      if (!interviewAtIso) {
+        throw new BadRequestError('HR interview time is required.');
+      }
+
+      const interviewAt = new Date(interviewAtIso);
+      if (Number.isNaN(interviewAt.getTime())) {
+        throw new BadRequestError('HR interview time is invalid.');
+      }
+      if (interviewAt.getTime() <= Date.now()) {
+        throw new BadRequestError('HR interview time must be in the future.');
+      }
+
+      application.hrInterviewLocation = interviewLocation;
+      application.hrInterviewAt = interviewAt;
+      application.hrInterviewInfo = interviewInfo || null;
     }
 
     application.status = body.status;
@@ -628,7 +747,7 @@ export class JobsController {
       isInternship: body.isInternship ?? false,
     };
 
-    const students = await this.fetchStudentsForMatching(false);
+    const students = await this.fetchStudentsForMatching(false, false);
     const count = students.filter(
       (student) => matchesListingType(flags, student) && studentSatisfiesRequirements(student, requirements),
     ).length;
@@ -742,7 +861,10 @@ export class JobsController {
     }
   }
 
-  private canTransition(current: ApplicationStatus, next: ApplicationStatus): boolean {
+  private canTransition(current: ApplicationStatus, next: ApplicationStatus, allowHrReschedule = false): boolean {
+    if (allowHrReschedule && current === 'HR_INTERVIEW' && next === 'HR_INTERVIEW') {
+      return true;
+    }
     return APPLICATION_TRANSITIONS[current].includes(next);
   }
 
@@ -790,14 +912,14 @@ export class JobsController {
     return statsByJobId;
   }
 
-  private async getPotentialStudentsForJob(job: Job, includeUser: boolean): Promise<Student[]> {
+  private async getPotentialStudentsForJob(job: Job, includeUser: boolean, includeEvaluation = false): Promise<Student[]> {
     const applications = await JobApplication.findAll({
       where: {jobId: job.id},
       attributes: ['studentId'],
     });
     const excludedStudentIds = new Set<number>(applications.map((app) => Number(app.studentId)));
 
-    const students = await this.fetchStudentsForMatching(includeUser);
+    const students = await this.fetchStudentsForMatching(includeUser, includeEvaluation);
     const requirements = extractJobRequirements(job);
     const flags: JobFlags = {isJob: !!job.isJob, isInternship: !!job.isInternship};
 
@@ -811,7 +933,7 @@ export class JobsController {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  private async fetchStudentsForMatching(includeUser: boolean): Promise<Student[]> {
+  private async fetchStudentsForMatching(includeUser: boolean, includeEvaluation = false): Promise<Student[]> {
     const includes: any[] = [
       {
         model: StudentSkill,
@@ -822,6 +944,10 @@ export class JobsController {
 
     if (includeUser) {
       includes.push({model: User, attributes: ['email']});
+    }
+
+    if (includeEvaluation) {
+      includes.push({model: StudentGithubEvaluation, attributes: ['status', 'overallScore', 'summaryMk', 'lastAnalyzedAt']});
     }
 
     return Student.findAll({

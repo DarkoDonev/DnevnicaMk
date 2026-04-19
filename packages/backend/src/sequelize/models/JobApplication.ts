@@ -49,4 +49,13 @@ export class JobApplication extends Model<JobApplication> {
 
   @Column({type: DataType.TEXT, allowNull: true})
   declare rejectionReason?: string | null;
+
+  @Column({type: DataType.DATE, allowNull: true})
+  declare hrInterviewAt?: Date | null;
+
+  @Column({type: DataType.STRING(260), allowNull: true})
+  declare hrInterviewLocation?: string | null;
+
+  @Column({type: DataType.TEXT, allowNull: true})
+  declare hrInterviewInfo?: string | null;
 }

@@ -11,10 +11,12 @@ import {JobPost} from '../../models';
 export class JobCardComponent {
   @Input({required: true}) job!: JobPost;
   @Input() showApplyAction = false;
+  @Input() showDetailsAction = false;
   @Input() applyDisabled = false;
   @Input() applyLoading = false;
   @Input() applyStatusLabel: string | null = null;
   @Output() readonly applyClick = new EventEmitter<number>();
+  @Output() readonly detailsClick = new EventEmitter<number>();
 
   trackReq = (_: number, r: JobPost['requirements'][number]) => r.skillName;
 
@@ -35,5 +37,9 @@ export class JobCardComponent {
 
   onApply(): void {
     this.applyClick.emit(this.job.id);
+  }
+
+  onViewDetails(): void {
+    this.detailsClick.emit(this.job.id);
   }
 }

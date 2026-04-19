@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Schedule HR Interview</h2>
+
+<mat-dialog-content>
+  <p>
+    Set interview details for <strong>{{ data.applicantName }}</strong>.
+  </p>
+
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Location</mat-label>
+      <input matInput formControlName="location" placeholder="Office address or meeting link" />
+      <mat-error *ngIf="form.controls.location.invalid">Location is required.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Time</mat-label>
+      <input matInput type="datetime-local" formControlName="atLocal" />
+      <mat-error *ngIf="form.controls.atLocal.invalid">Time is required.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Short info (optional)</mat-label>
+      <textarea matInput rows="3" formControlName="info" placeholder="What should the student prepare?"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="submit()">Save</button>
+</mat-dialog-actions>

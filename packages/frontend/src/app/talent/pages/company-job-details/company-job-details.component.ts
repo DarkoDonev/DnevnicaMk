@@ -8,12 +8,17 @@ import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, swi
 import {ApplicationStatus, CompanyJobDetails, JobApplication, JobPost, PotentialStudent} from '../../models';
 import {JobBoardService} from '../../services/job-board.service';
 import {RejectApplicationDialogComponent} from '../company-jobs/reject-application-dialog.component';
+import {
+  HrInterviewScheduleDialogComponent,
+  HrInterviewScheduleDialogResult,
+} from './hr-interview-schedule-dialog.component';
 
 interface ApplicationAction {
   label: string;
   status: ApplicationStatus;
   color: 'primary' | 'accent' | 'warn';
   openRejectDialog?: boolean;
+  openHrScheduleDialog?: boolean;
 }
 
 interface CompanyJobDetailsVm {
@@ -88,10 +93,15 @@ export class CompanyJobDetailsComponent {
         ];
       case 'APPROVED':
         return [
-          {label: 'HR Interview', status: 'HR_INTERVIEW', color: 'accent'},
+          {label: 'HR Interview', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
           {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
         ];
       case 'HR_INTERVIEW':
+        return [
+          {label: 'Reschedule HR', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
+          {label: 'Mark Done', status: 'DONE', color: 'primary'},
+          {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
+        ];
       case 'TECHNICAL_INTERVIEW':
         return [
           {label: 'Mark Done', status: 'DONE', color: 'primary'},
@@ -169,6 +179,23 @@ export class CompanyJobDetailsComponent {
   updateStatus(application: JobApplication, action: ApplicationAction): void {
     if (this.updatingApplicationId !== null) return;
 
+    if (action.openHrScheduleDialog) {
+      const dialogRef = this.dialog.open(HrInterviewScheduleDialogComponent, {
+        width: '560px',
+        maxWidth: '96vw',
+        data: {
+          applicantName: application.student?.name ?? 'Applicant',
+          currentInterview: application.hrInterview,
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((schedule: HrInterviewScheduleDialogResult | undefined) => {
+        if (!schedule) return;
+        this.persistStatusChange(application.id, action.status, undefined, schedule);
+      });
+      return;
+    }
+
     if (action.openRejectDialog) {
       const dialogRef = this.dialog.open(RejectApplicationDialogComponent, {
         width: '520px',
@@ -205,9 +232,22 @@ export class CompanyJobDetailsComponent {
     });
   }
 
-  private persistStatusChange(applicationId: number, status: ApplicationStatus, rejectionReason?: string): void {
+  private persistStatusChange(
+    applicationId: number,
+    status: ApplicationStatus,
+    rejectionReason?: string,
+    schedule?: HrInterviewScheduleDialogResult,
+  ): void {
     this.updatingApplicationId = applicationId;
-    this.jobs.updateApplicationStatus(applicationId, {status, rejectionReason}).subscribe({
+    this.jobs
+      .updateApplicationStatus(applicationId, {
+        status,
+        rejectionReason,
+        hrInterviewAtIso: schedule?.hrInterviewAtIso,
+        hrInterviewLocation: schedule?.hrInterviewLocation,
+        hrInterviewInfo: schedule?.hrInterviewInfo,
+      })
+      .subscribe({
       next: () => {
         this.snackBar.open('Application status updated.', 'Dismiss', {duration: 2500});
         this.updatingApplicationId = null;

@@ -29,7 +29,7 @@ export class AdminCompanyApprovalsComponent {
     shareReplay({bufferSize: 1, refCount: true}),
   );
 
-  readonly noteByCompanyId: Record<number, string> = {};
+  readonly noteByCompanyId: Partial<Record<number, string>> = {};
 
   constructor(
     private readonly fb: NonNullableFormBuilder,

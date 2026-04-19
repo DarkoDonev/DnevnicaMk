@@ -65,12 +65,25 @@
                   <div class="app-name">{{ app.student?.name || 'Applicant' }}</div>
                   <div class="app-email">{{ app.student?.email || '' }}</div>
                   <div class="app-meta" *ngIf="app.student?.headline">{{ app.student?.headline }}</div>
+                  <div class="ai-score" *ngIf="app.student?.aiEvaluationPreview?.overallScore !== null && app.student?.aiEvaluationPreview?.overallScore !== undefined">
+                    AI Score: {{ app.student?.aiEvaluationPreview?.overallScore }}/100
+                  </div>
+                  <div class="ai-summary" *ngIf="app.student?.aiEvaluationPreview?.summarySnippet">
+                    {{ app.student?.aiEvaluationPreview?.summarySnippet }}
+                  </div>
                 </div>
 
                 <span class="status-pill" [ngClass]="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
               </div>
 
               <div class="app-updated">Updated {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+
+              <div class="interview-details" *ngIf="app.status === 'HR_INTERVIEW' && app.hrInterview">
+                <div class="interview-title">HR Interview Scheduled</div>
+                <div class="interview-line"><strong>Time:</strong> {{ app.hrInterview.atIso | date: 'MMM d, y, HH:mm' }}</div>
+                <div class="interview-line"><strong>Location:</strong> {{ app.hrInterview.location }}</div>
+                <div class="interview-line" *ngIf="app.hrInterview.info"><strong>Info:</strong> {{ app.hrInterview.info }}</div>
+              </div>
 
               <div class="app-actions" *ngIf="getActionsForStatus(app.status).length > 0">
                 <button
@@ -132,6 +145,12 @@
               </div>
 
               <p class="student-headline" *ngIf="student.headline">{{ student.headline }}</p>
+              <div class="ai-score" *ngIf="student.aiEvaluationPreview?.overallScore !== null && student.aiEvaluationPreview?.overallScore !== undefined">
+                AI Score: {{ student.aiEvaluationPreview?.overallScore }}/100
+              </div>
+              <div class="ai-summary" *ngIf="student.aiEvaluationPreview?.summarySnippet">
+                {{ student.aiEvaluationPreview?.summarySnippet }}
+              </div>
 
               <mat-chip-set>
                 <mat-chip *ngFor="let skill of student.skills; trackBy: trackSkill">

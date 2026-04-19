@@ -30,6 +30,10 @@
   </mat-card-content>
 
 <mat-card-actions align="end">
+    <button mat-stroked-button type="button" *ngIf="showDetailsAction" (click)="onViewDetails()">
+      <mat-icon aria-hidden="true">visibility</mat-icon>
+      <span>Details</span>
+    </button>
     <span class="apply-status" *ngIf="showApplyAction && applyStatusLabel">{{ applyStatusLabel }}</span>
     <button
       mat-flat-button

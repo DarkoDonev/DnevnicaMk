@@ -1,0 +1,80 @@
+<div class="page">
+  <header class="page-hd">
+    <a mat-button routerLink="/student/jobs">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Back to Jobs
+    </a>
+  </header>
+
+  <ng-container *ngIf="vm$ | async as vm; else loading">
+    <ng-container *ngIf="vm; else failed">
+      <header class="hero">
+        <div class="eyebrow">Student</div>
+        <h1 class="title">{{ vm.job.title }}</h1>
+        <p class="subtitle">
+          {{ vm.job.companyName }} • {{ vm.job.location }} • {{ vm.job.workMode }} • {{ listingTypeLabel(vm.job) }}
+        </p>
+      </header>
+
+      <mat-card class="summary" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>Job Summary</mat-card-title>
+          <mat-card-subtitle>Read-only details for this role</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="desc">{{ vm.job.description }}</p>
+
+          <div class="requirements" *ngIf="vm.job.requirements.length > 0; else noRequirements">
+            <div class="req-title">Required Skills</div>
+            <mat-chip-set>
+              <mat-chip *ngFor="let requirement of vm.job.requirements; trackBy: trackRequirement">
+                {{ requirement.skillName }} • {{ requirement.minYears }}y+
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+          <ng-template #noRequirements>
+            <div class="meta-item">No specific skills listed.</div>
+          </ng-template>
+
+          <div class="meta">
+            <span class="meta-item" *ngIf="postedAtLabel(vm.job.postedAtIso)">Posted {{ postedAtLabel(vm.job.postedAtIso) }}</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <span class="status-pill" *ngIf="vm.application">{{ statusLabel(vm.application.status) }}</span>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            *ngIf="!vm.application"
+            [disabled]="applying"
+            (click)="applyToJob(vm.jobId, false)"
+          >
+            <mat-icon aria-hidden="true">{{ applying ? 'hourglass_top' : 'send' }}</mat-icon>
+            {{ applying ? 'Applying...' : 'Apply' }}
+          </button>
+          <button mat-stroked-button type="button" disabled *ngIf="vm.application">
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            Already Applied
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="state">
+      <mat-progress-spinner mode="indeterminate" diameter="34"></mat-progress-spinner>
+      <span>Loading job details...</span>
+    </div>
+  </ng-template>
+
+  <ng-template #failed>
+    <div class="state">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>Could not load this job details page.</span>
+    </div>
+  </ng-template>
+</div>

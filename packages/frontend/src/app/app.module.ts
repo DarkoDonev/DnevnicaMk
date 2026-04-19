@@ -26,6 +26,7 @@ import {RejectApplicationDialogComponent} from './talent/pages/company-jobs/reje
 import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
 import {StudentJobsComponent} from './talent/pages/student-jobs/student-jobs.component';
+import {StudentJobDetailsComponent} from './talent/pages/student-job-details/student-job-details.component';
 import {StudentCardComponent} from './talent/components/student-card/student-card.component';
 import {JobCardComponent} from './talent/components/job-card/job-card.component';
 import {AuthTokenInterceptor} from './talent/interceptors/auth-token.interceptor';
@@ -33,6 +34,7 @@ import {CompanyRegistrationPendingComponent} from './talent/pages/company-regist
 import {AdminCompanyApprovalsComponent} from './talent/pages/admin-company-approvals/admin-company-approvals.component';
 import {EventsPageComponent} from './talent/pages/events-page/events-page.component';
 import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/company-job-details.component';
+import {HrInterviewScheduleDialogComponent} from './talent/pages/company-job-details/hr-interview-schedule-dialog.component';
 
 @NgModule({
   declarations: [
@@ -45,10 +47,12 @@ import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/com
     CompanyJobsComponent,
     NewJobPostDialogComponent,
     CompanyJobDetailsComponent,
+    HrInterviewScheduleDialogComponent,
     RejectApplicationDialogComponent,
     StudentApplicationsComponent,
     StudentProfileComponent,
     StudentJobsComponent,
+    StudentJobDetailsComponent,
     StudentCardComponent,
     JobCardComponent,
     CompanyRegistrationPendingComponent,

@@ -11,6 +11,7 @@ import {
   JobPost,
   JobRequirement,
   PotentialStudent,
+  StudentJobDetails,
   WorkMode,
 } from '../models';
 
@@ -44,6 +45,10 @@ interface CompanyJobDetailsResponse {
   data: CompanyJobDetails;
 }
 
+interface StudentJobDetailsResponse {
+  data: StudentJobDetails;
+}
+
 interface PotentialStudentsResponse {
   data: PotentialStudent[];
 }
@@ -57,6 +62,9 @@ interface PotentialPreviewResponse {
 export interface UpdateJobApplicationStatusPayload {
   status: ApplicationStatus;
   rejectionReason?: string;
+  hrInterviewAtIso?: string;
+  hrInterviewLocation?: string;
+  hrInterviewInfo?: string;
 }
 
 export interface PotentialPreviewPayload {
@@ -97,6 +105,10 @@ export class JobBoardService {
 
   getCompanyJobDetails(jobId: number): Observable<CompanyJobDetails> {
     return this.http.get<CompanyJobDetailsResponse>(`${environment.apiUrl}/jobs/company/${jobId}`).pipe(map((r) => r.data));
+  }
+
+  getStudentJobDetails(jobId: number): Observable<StudentJobDetails> {
+    return this.http.get<StudentJobDetailsResponse>(`${environment.apiUrl}/jobs/student/${jobId}`).pipe(map((r) => r.data));
   }
 
   getPotentialStudents(jobId: number): Observable<readonly PotentialStudent[]> {

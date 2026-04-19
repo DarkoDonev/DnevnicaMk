@@ -5,10 +5,6 @@
       <h1 class="title">My Applications</h1>
       <p class="subtitle">Track your job applications, interview phases, and rejection feedback.</p>
     </div>
-    <button mat-stroked-button type="button" (click)="refresh()">
-      <mat-icon aria-hidden="true">refresh</mat-icon>
-      Refresh
-    </button>
   </header>
 
   <section class="results">
@@ -62,6 +58,13 @@
             <div class="timestamps">
               <div>Applied: {{ app.createdAtIso | date: 'MMM d, y, HH:mm' }}</div>
               <div>Updated: {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+            </div>
+
+            <div class="interview" *ngIf="app.status === 'HR_INTERVIEW' && app.hrInterview">
+              <div class="interview-hd">HR interview details</div>
+              <div><strong>Time:</strong> {{ app.hrInterview.atIso | date: 'MMM d, y, HH:mm' }}</div>
+              <div><strong>Location:</strong> {{ app.hrInterview.location }}</div>
+              <div *ngIf="app.hrInterview.info"><strong>Info:</strong> {{ app.hrInterview.info }}</div>
             </div>
 
             <div class="reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">

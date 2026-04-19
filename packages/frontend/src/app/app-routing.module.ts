@@ -9,6 +9,7 @@ import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/com
 import {StudentProfileComponent} from './talent/pages/student-profile/student-profile.component';
 import {StudentApplicationsComponent} from './talent/pages/student-applications/student-applications.component';
 import {StudentJobsComponent} from './talent/pages/student-jobs/student-jobs.component';
+import {StudentJobDetailsComponent} from './talent/pages/student-job-details/student-job-details.component';
 import {authRoleGuard} from './talent/guards/auth-role.guard';
 import {authGuard} from './talent/guards/auth.guard';
 import {CompanyRegistrationPendingComponent} from './talent/pages/company-registration-pending/company-registration-pending.component';
@@ -57,6 +58,7 @@ const routes: Routes = [
     children: [
       {path: '', pathMatch: 'full', redirectTo: 'profile'},
       {path: 'profile', component: StudentProfileComponent},
+      {path: 'jobs/:jobId', component: StudentJobDetailsComponent},
       {path: 'jobs', component: StudentJobsComponent},
       {path: 'applications', component: StudentApplicationsComponent},
     ],
