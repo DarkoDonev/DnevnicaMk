@@ -62,11 +62,11 @@ module.exports = {
     const sequelize = queryInterface.sequelize;
 
     const adminUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'admin@dnevnicamk.local'});
-    const nimbusUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'hr@nimbuslabs.com'});
+    const nimbusUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'hr@dnevnica.mk'});
     const blueoakUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'talent@blueoak.dev'});
-    const elenaUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'elena.petrova@studentmail.com'});
-    const markoUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'marko.iliev@studentmail.com'});
-    const saraUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'sara.nikolovska@studentmail.com'});
+    const elenaUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'darko.donev@studentmail.com'});
+    const markoUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'boris.goshevski@studentmail.com'});
+    const saraUser = await selectOne(sequelize, 'SELECT id FROM users WHERE email = :email', {email: 'metodija.danevski@studentmail.com'});
 
     // Companies
     await queryInterface.bulkInsert(
