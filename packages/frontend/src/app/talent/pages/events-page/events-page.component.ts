@@ -4,6 +4,7 @@ import {NonNullableFormBuilder, Validators} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {AuthService} from '../../services/auth.service';
 import {EventItem} from '../../models';
 import {CreateCompanyEventPayload, EventsService} from '../../services/events.service';
@@ -50,7 +51,7 @@ export class EventsPageComponent {
           of({
             status: 'error' as const,
             data: [],
-            errorMessage: this.toErrorMessage(err, 'Failed to load events.'),
+            errorMessage: this.toErrorMessage(err, this.i18n.t('Failed to load events.')),
           }),
         ),
       ),
@@ -65,6 +66,7 @@ export class EventsPageComponent {
     private readonly auth: AuthService,
     private readonly fb: NonNullableFormBuilder,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackEvent = (_: number, event: EventItem) => event.id;
@@ -76,7 +78,7 @@ export class EventsPageComponent {
     const date = this.coerceDate(raw.startsAtDate);
     const time = this.parseTime(raw.startsAtTime);
     if (!date || !time) {
-      this.snackBar.open('Please provide a valid start date/time.', 'Dismiss', {duration: 3500});
+      this.snackBar.open(this.i18n.t('Please provide a valid start date/time.'), this.i18n.t('Dismiss'), {duration: 3500});
       return;
     }
 
@@ -90,7 +92,7 @@ export class EventsPageComponent {
       0,
     );
     if (Number.isNaN(startsAt.getTime())) {
-      this.snackBar.open('Please provide a valid start date/time.', 'Dismiss', {duration: 3500});
+      this.snackBar.open(this.i18n.t('Please provide a valid start date/time.'), this.i18n.t('Dismiss'), {duration: 3500});
       return;
     }
 
@@ -105,7 +107,7 @@ export class EventsPageComponent {
     this.isSubmitting = true;
     this.eventsService.createCompanyEvent(payload).subscribe({
       next: () => {
-        this.snackBar.open('Event published.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Event published.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.createForm.reset({
           title: '',
           startsAtDate: this.defaultStartsAtDate(),
@@ -118,7 +120,11 @@ export class EventsPageComponent {
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not publish event.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not publish event.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
         this.isSubmitting = false;
       },
     });
@@ -173,8 +179,8 @@ export class EventsPageComponent {
   private toErrorMessage(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse) {
       if (typeof err.error?.message === 'string') return err.error.message;
-      if (err.status === 0) return 'Could not reach the server. Please try again.';
-      return `Failed to load events (HTTP ${err.status}).`;
+      if (err.status === 0) return this.i18n.t('Could not reach the server. Please try again.');
+      return this.i18n.t('Failed to load events (HTTP {status}).', {status: err.status});
     }
     if (err instanceof Error) return err.message;
     return fallback;

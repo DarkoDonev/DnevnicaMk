@@ -4,6 +4,7 @@ import {ActivatedRoute} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, switchMap, take} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {Student, StudentAiEvaluationDetails} from '../../models';
 import {StudentDirectoryService} from '../../services/student-directory.service';
 import {environment} from '../../../../environments/environment';
@@ -29,7 +30,11 @@ export class CompanyStudentDetailsComponent {
       if (studentId <= 0) return of(null);
       return this.directory.getStudentById(studentId).pipe(
         catchError((err: unknown) => {
-          this.snackBar.open(this.toErrorMessage(err, 'Could not load student account.'), 'Dismiss', {duration: 3500});
+          this.snackBar.open(
+            this.toErrorMessage(err, this.i18n.t('Could not load student account.')),
+            this.i18n.t('Dismiss'),
+            {duration: 3500},
+          );
           return of(null);
         }),
       );
@@ -42,7 +47,11 @@ export class CompanyStudentDetailsComponent {
       if (studentId <= 0) return of(null);
       return this.directory.getStudentEvaluation(studentId).pipe(
         catchError((err: unknown) => {
-          this.snackBar.open(this.toErrorMessage(err, 'Could not load AI summary.'), 'Dismiss', {duration: 3500});
+          this.snackBar.open(
+            this.toErrorMessage(err, this.i18n.t('Could not load AI summary.')),
+            this.i18n.t('Dismiss'),
+            {duration: 3500},
+          );
           return of(null);
         }),
       );
@@ -56,6 +65,7 @@ export class CompanyStudentDetailsComponent {
     private readonly route: ActivatedRoute,
     private readonly directory: StudentDirectoryService,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackSkill = (_: number, item: Student['skills'][number]) => item.skillName;
@@ -70,10 +80,10 @@ export class CompanyStudentDetailsComponent {
   seekingLabel(student: Student): string {
     const seeksJob = !!student.seekingJob;
     const seeksInternship = !!student.seekingInternship;
-    if (seeksJob && seeksInternship) return 'Work + Internship';
-    if (seeksJob) return 'Work';
-    if (seeksInternship) return 'Internship';
-    return 'None selected';
+    if (seeksJob && seeksInternship) return this.i18n.t('Work + Internship');
+    if (seeksJob) return this.i18n.t('Work');
+    if (seeksInternship) return this.i18n.t('Internship');
+    return this.i18n.t('None selected');
   }
 
   profileImageHref(profileImageUrl: string | undefined): string {
@@ -88,7 +98,7 @@ export class CompanyStudentDetailsComponent {
 
   runEvaluation(evaluation: StudentAiEvaluationDetails | null, hasGithubUrl: boolean): void {
     if (!hasGithubUrl) {
-      this.snackBar.open('Student does not have a GitHub URL on profile.', 'Dismiss', {duration: 3500});
+      this.snackBar.open(this.i18n.t('Student does not have a GitHub URL on profile.'), this.i18n.t('Dismiss'), {duration: 3500});
       return;
     }
     if (this.isRunningEvaluation || evaluation?.status === 'pending') return;
@@ -104,14 +114,18 @@ export class CompanyStudentDetailsComponent {
 
       this.directory.runStudentEvaluation(studentId, force).subscribe({
         next: (result) => {
-          const msg = result.fromCache ? 'Used cached AI summary.' : 'AI summary generated.';
-          this.snackBar.open(msg, 'Dismiss', {duration: 2600});
+          const msg = result.fromCache ? this.i18n.t('Used cached AI summary.') : this.i18n.t('AI summary generated.');
+          this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 2600});
           this.isRunningEvaluation = false;
           this.reloadStudent$.next();
           this.reloadEvaluation$.next();
         },
         error: (err: unknown) => {
-          this.snackBar.open(this.toErrorMessage(err, 'Could not run AI summary.'), 'Dismiss', {duration: 3500});
+          this.snackBar.open(
+            this.toErrorMessage(err, this.i18n.t('Could not run AI summary.')),
+            this.i18n.t('Dismiss'),
+            {duration: 3500},
+          );
           this.isRunningEvaluation = false;
         },
       });
@@ -121,32 +135,32 @@ export class CompanyStudentDetailsComponent {
   evaluationStatusLabel(evaluation: StudentAiEvaluationDetails | null): string {
     switch (evaluation?.status) {
       case 'ready':
-        return 'Ready';
+        return this.i18n.t('Ready');
       case 'pending':
-        return 'Running';
+        return this.i18n.t('Running');
       case 'failed':
-        return 'Failed';
+        return this.i18n.t('Failed');
       case 'none':
       default:
-        return 'Not analyzed';
+        return this.i18n.t('Not analyzed');
     }
   }
 
   evaluationActionLabel(evaluation: StudentAiEvaluationDetails | null): string {
-    if (this.isRunningEvaluation || evaluation?.status === 'pending') return 'Running...';
-    if (evaluation?.status === 'ready') return 'Re-run AI Summary';
-    return 'Generate AI Summary';
+    if (this.isRunningEvaluation || evaluation?.status === 'pending') return this.i18n.t('Running...');
+    if (evaluation?.status === 'ready') return this.i18n.t('Re-run AI Summary');
+    return this.i18n.t('Generate AI Summary');
   }
 
   formatIsoDate(iso: string | null): string {
-    if (!iso) return 'N/A';
+    if (!iso) return this.i18n.t('N/A');
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return 'N/A';
-    return d.toLocaleString();
+    if (Number.isNaN(d.getTime())) return this.i18n.t('N/A');
+    return d.toLocaleString(this.i18n.currentDateLocale);
   }
 
   asPercent(v: number | null | undefined): string {
-    if (v === null || v === undefined) return 'N/A';
+    if (v === null || v === undefined) return this.i18n.t('N/A');
     return `${Math.round(v * 100)}%`;
   }
 

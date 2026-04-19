@@ -3,6 +3,7 @@ import {NonNullableFormBuilder} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {combineLatest, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {
   CompanyApprovalItem,
   CompanyApprovalService,
@@ -35,6 +36,7 @@ export class AdminCompanyApprovalsComponent {
     private readonly fb: NonNullableFormBuilder,
     private readonly companyApproval: CompanyApprovalService,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackByCompanyId = (_: number, item: CompanyApprovalItem) => item.id;
@@ -47,6 +49,12 @@ export class AdminCompanyApprovalsComponent {
     this.noteByCompanyId[companyId] = value;
   }
 
+  statusLabel(status: CompanyRegistrationStatus): string {
+    if (status === 'approved') return this.i18n.t('Approved');
+    if (status === 'rejected') return this.i18n.t('Rejected');
+    return this.i18n.t('Pending');
+  }
+
   approve(item: CompanyApprovalItem): void {
     if (item.registrationStatus !== 'pending' || this.isActing(item.id)) return;
     this.actingCompanyIds.add(item.id);
@@ -54,13 +62,13 @@ export class AdminCompanyApprovalsComponent {
 
     this.companyApproval.approve(item.id, note).subscribe({
       next: () => {
-        this.snackBar.open(`Approved ${item.name}.`, 'Dismiss', {duration: 2600});
+        this.snackBar.open(this.i18n.t('Approved {name}.', {name: item.name}), this.i18n.t('Dismiss'), {duration: 2600});
         this.actingCompanyIds.delete(item.id);
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not approve company.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not approve company.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.actingCompanyIds.delete(item.id);
       },
     });
@@ -73,13 +81,13 @@ export class AdminCompanyApprovalsComponent {
 
     this.companyApproval.reject(item.id, note).subscribe({
       next: () => {
-        this.snackBar.open(`Rejected ${item.name}.`, 'Dismiss', {duration: 2600});
+        this.snackBar.open(this.i18n.t('Rejected {name}.', {name: item.name}), this.i18n.t('Dismiss'), {duration: 2600});
         this.actingCompanyIds.delete(item.id);
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not reject company.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not reject company.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.actingCompanyIds.delete(item.id);
       },
     });

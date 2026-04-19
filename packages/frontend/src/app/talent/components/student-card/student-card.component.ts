@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {EvaluationStatus, Student} from '../../models';
 import {environment} from '../../../../environments/environment';
 
@@ -17,6 +18,8 @@ export class StudentCardComponent {
   @Output() analyzeRequested = new EventEmitter<Student>();
   @Output() detailsRequested = new EventEmitter<Student>();
 
+  constructor(private readonly i18n: LocalizationService) {}
+
   get initials(): string {
     const parts = this.student.name.trim().split(/\s+/).filter(Boolean);
     const first = parts.at(0)?.[0] ?? '';
@@ -29,10 +32,10 @@ export class StudentCardComponent {
   get seekingLabel(): string {
     const seeksJob = !!this.student.seekingJob;
     const seeksInternship = !!this.student.seekingInternship;
-    if (seeksJob && seeksInternship) return 'Work + Internship';
-    if (seeksJob) return 'Work';
-    if (seeksInternship) return 'Internship';
-    return 'None selected';
+    if (seeksJob && seeksInternship) return this.i18n.t('Work + Internship');
+    if (seeksJob) return this.i18n.t('Work');
+    if (seeksInternship) return this.i18n.t('Internship');
+    return this.i18n.t('None selected');
   }
 
   get evaluationStatus(): EvaluationStatus {
@@ -42,14 +45,14 @@ export class StudentCardComponent {
   get evaluationStatusLabel(): string {
     switch (this.evaluationStatus) {
       case 'ready':
-        return 'Ready';
+        return this.i18n.t('Ready');
       case 'pending':
-        return 'Running';
+        return this.i18n.t('Running');
       case 'failed':
-        return 'Failed';
+        return this.i18n.t('Failed');
       case 'none':
       default:
-        return 'Not analyzed';
+        return this.i18n.t('Not analyzed');
     }
   }
 

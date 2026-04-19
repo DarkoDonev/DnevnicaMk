@@ -1,14 +1,14 @@
 <div class="page">
   <header class="page-hd">
     <div>
-      <div class="eyebrow">Company</div>
-      <h1 class="title">Your Job Posts</h1>
-      <p class="subtitle">Manage active openings, review applicants, and send requests to potential matches.</p>
+      <div class="eyebrow">{{ 'Company' | t }}</div>
+      <h1 class="title">{{ 'Your Job Posts' | t }}</h1>
+      <p class="subtitle">{{ 'Manage active openings, review applicants, and send requests to potential matches.' | t }}</p>
     </div>
 
     <button mat-flat-button color="primary" type="button" (click)="openNewJobModal()">
       <mat-icon aria-hidden="true">add</mat-icon>
-      New Job Post
+      {{ 'New Job Post' | t }}
     </button>
   </header>
 
@@ -19,7 +19,7 @@
           <mat-card-header>
             <mat-card-title>{{ job.title }}</mat-card-title>
             <mat-card-subtitle>
-              {{ job.location }} • {{ job.workMode }} • {{ listingTypeLabel(job) }}
+              {{ job.location }} • {{ workModeLabel(job.workMode) }} • {{ listingTypeLabel(job) }}
             </mat-card-subtitle>
           </mat-card-header>
 
@@ -28,28 +28,28 @@
 
             <div class="stats">
               <div class="stat-box">
-                <span class="stat-label">Applications</span>
+                <span class="stat-label">{{ 'Applications' | t }}</span>
                 <span class="stat-value">{{ applicationsCount(job) }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-label">Invited</span>
+                <span class="stat-label">{{ 'Invited' | t }}</span>
                 <span class="stat-value">{{ invitedCount(job) }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-label">Potential</span>
+                <span class="stat-label">{{ 'Potential' | t }}</span>
                 <span class="stat-value">{{ potentialCount(job) }}</span>
               </div>
             </div>
 
             <div class="meta" *ngIf="postedAtLabel(job.postedAtIso)">
-              Posted {{ postedAtLabel(job.postedAtIso) }}
+              {{ 'Posted' | t }} {{ postedAtLabel(job.postedAtIso) }}
             </div>
           </mat-card-content>
 
           <mat-card-actions align="end">
             <a mat-stroked-button [routerLink]="['/company/jobs', job.id]">
               <mat-icon aria-hidden="true">visibility</mat-icon>
-              Details
+              {{ 'Details' | t }}
             </a>
           </mat-card-actions>
         </mat-card>
@@ -59,14 +59,14 @@
     <ng-template #loading>
       <div class="state">
         <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-        <div class="state-txt">Loading jobs...</div>
+        <div class="state-txt">{{ 'Loading jobs...' | t }}</div>
       </div>
     </ng-template>
 
     <ng-template #empty>
       <div class="state">
         <mat-icon class="state-ic" aria-hidden="true">work_outline</mat-icon>
-        <div class="state-txt">No jobs yet. Click "New Job Post" to publish your first opening.</div>
+        <div class="state-txt">{{ 'No jobs yet. Click \"New Job Post\" to publish your first opening.' | t }}</div>
       </div>
     </ng-template>
   </section>

@@ -3,6 +3,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {ApplicationStatus, InviteDecision, JobApplication} from '../../models';
 import {JobBoardService} from '../../services/job-board.service';
 
@@ -22,8 +23,8 @@ export class StudentApplicationsComponent {
       this.jobs.getMyApplications().pipe(
         map((applications) => applications.slice().sort((a, b) => b.createdAtIso.localeCompare(a.createdAtIso))),
         catchError((err: unknown) => {
-          const msg = this.toErrorMessage(err, 'Could not load applications.');
-          this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+          const msg = this.toErrorMessage(err, this.i18n.t('Could not load applications.'));
+          this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
           return of([] as readonly JobApplication[]);
         }),
       ),
@@ -34,6 +35,7 @@ export class StudentApplicationsComponent {
   constructor(
     private readonly jobs: JobBoardService,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackApplication = (_: number, app: JobApplication) => app.id;
@@ -48,14 +50,14 @@ export class StudentApplicationsComponent {
 
     this.jobs.respondToInvitation(application.id, decision).subscribe({
       next: () => {
-        const msg = decision === 'ACCEPT' ? 'Invitation accepted.' : 'Invitation declined.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 2500});
+        const msg = decision === 'ACCEPT' ? this.i18n.t('Invitation accepted.') : this.i18n.t('Invitation declined.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 2500});
         this.respondingApplicationId = null;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = this.toErrorMessage(err, 'Could not update invitation response.');
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = this.toErrorMessage(err, this.i18n.t('Could not update invitation response.'));
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.respondingApplicationId = null;
       },
     });
@@ -64,21 +66,21 @@ export class StudentApplicationsComponent {
   statusLabel(status: ApplicationStatus): string {
     switch (status) {
       case 'INVITED':
-        return 'Invited';
+        return this.i18n.t('Invited');
       case 'APPLIED':
-        return 'Applied';
+        return this.i18n.t('Applied');
       case 'APPROVED':
-        return 'Approved';
+        return this.i18n.t('Approved');
       case 'HR_INTERVIEW':
-        return 'HR Interview';
+        return this.i18n.t('HR Interview');
       case 'TECHNICAL_INTERVIEW':
-        return 'Technical Interview';
+        return this.i18n.t('Technical Interview');
       case 'DONE':
-        return 'Done';
+        return this.i18n.t('Done');
       case 'DECLINED':
-        return 'Declined';
+        return this.i18n.t('Declined');
       case 'REJECTED':
-        return 'Rejected';
+        return this.i18n.t('Rejected');
       default:
         return status;
     }
@@ -110,10 +112,17 @@ export class StudentApplicationsComponent {
   jobTypeLabel(job: JobApplication['job']): string {
     const hasJob = !!job.isJob;
     const hasInternship = !!job.isInternship;
-    if (hasJob && hasInternship) return 'Work + Internship';
-    if (hasJob) return 'Work';
-    if (hasInternship) return 'Internship';
-    return 'Unspecified';
+    if (hasJob && hasInternship) return this.i18n.t('Work + Internship');
+    if (hasJob) return this.i18n.t('Work');
+    if (hasInternship) return this.i18n.t('Internship');
+    return this.i18n.t('Unspecified');
+  }
+
+  workModeLabel(mode: JobApplication['job']['workMode']): string {
+    if (mode === 'Remote') return this.i18n.t('Remote');
+    if (mode === 'Hybrid') return this.i18n.t('Hybrid');
+    if (mode === 'On-site') return this.i18n.t('On-site');
+    return mode;
   }
 
   private toErrorMessage(err: unknown, fallback: string): string {

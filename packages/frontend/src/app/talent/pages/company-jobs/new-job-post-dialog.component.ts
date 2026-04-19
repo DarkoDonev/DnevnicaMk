@@ -4,6 +4,7 @@ import {NonNullableFormBuilder, Validators} from '@angular/forms';
 import {MatDialogRef} from '@angular/material/dialog';
 import {catchError, debounceTime, map, Observable, of, shareReplay, startWith, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {JobRequirement, WorkMode} from '../../models';
 import {JobBoardService, PotentialPreviewPayload} from '../../services/job-board.service';
 import {TechSkillsService} from '../../services/tech-skills.service';
@@ -62,7 +63,7 @@ export class NewJobPostDialogComponent {
           of({
             loading: false,
             count: null,
-            errorMessage: this.toErrorMessage(err, 'Could not calculate potential matches.'),
+            errorMessage: this.toErrorMessage(err, this.i18n.t('Could not calculate potential matches.')),
           } as PotentialPreviewState),
         ),
       );
@@ -75,6 +76,7 @@ export class NewJobPostDialogComponent {
     private readonly jobs: JobBoardService,
     private readonly skillService: TechSkillsService,
     private readonly dialogRef: MatDialogRef<NewJobPostDialogComponent>,
+    private readonly i18n: LocalizationService,
   ) {}
 
   addRequirement(): void {
@@ -89,6 +91,13 @@ export class NewJobPostDialogComponent {
   removeRequirement(idx: number): void {
     if (this.requirements.length <= 1) return;
     this.requirements.removeAt(idx);
+  }
+
+  workModeLabel(mode: WorkMode): string {
+    if (mode === 'Remote') return this.i18n.t('Remote');
+    if (mode === 'Hybrid') return this.i18n.t('Hybrid');
+    if (mode === 'On-site') return this.i18n.t('On-site');
+    return mode;
   }
 
   submit(): void {
@@ -111,7 +120,7 @@ export class NewJobPostDialogComponent {
           this.dialogRef.close(true);
         },
         error: (err: unknown) => {
-          this.dialogRef.close({error: this.toErrorMessage(err, 'Could not post job.')});
+          this.dialogRef.close({error: this.toErrorMessage(err, this.i18n.t('Could not post job.'))});
         },
       });
   }

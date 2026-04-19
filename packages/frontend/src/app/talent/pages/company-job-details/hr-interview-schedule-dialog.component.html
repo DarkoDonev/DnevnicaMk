@@ -1,41 +1,41 @@
-<h2 mat-dialog-title>Schedule HR Interview</h2>
+<h2 mat-dialog-title>{{ 'Schedule HR Interview' | t }}</h2>
 
 <mat-dialog-content>
   <p>
-    Set interview details for <strong>{{ data.applicantName }}</strong>.
+    {{ 'Set interview details for {applicantName}.' | t: {applicantName: data.applicantName} }}
   </p>
 
   <form [formGroup]="form" class="form">
     <mat-form-field appearance="outline" class="full">
-      <mat-label>Location</mat-label>
-      <input matInput formControlName="location" placeholder="Office address or meeting link" />
-      <mat-error *ngIf="form.controls.location.invalid">Location is required.</mat-error>
+      <mat-label>{{ 'Location' | t }}</mat-label>
+      <input matInput formControlName="location" [placeholder]="'Office address or meeting link' | t" />
+      <mat-error *ngIf="form.controls.location.invalid">{{ 'Location is required.' | t }}</mat-error>
     </mat-form-field>
 
     <div class="date-time-row">
       <mat-form-field appearance="outline" class="full">
-        <mat-label>Date</mat-label>
+        <mat-label>{{ 'Date' | t }}</mat-label>
         <input matInput [matDatepicker]="interviewDatePicker" formControlName="interviewDate" />
         <mat-datepicker-toggle matIconSuffix [for]="interviewDatePicker"></mat-datepicker-toggle>
         <mat-datepicker #interviewDatePicker></mat-datepicker>
-        <mat-error *ngIf="form.controls.interviewDate.invalid">Date is required.</mat-error>
+        <mat-error *ngIf="form.controls.interviewDate.invalid">{{ 'Date is required.' | t }}</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full">
-        <mat-label>Time</mat-label>
+        <mat-label>{{ 'Time' | t }}</mat-label>
         <input matInput type="time" formControlName="interviewTime" />
-        <mat-error *ngIf="form.controls.interviewTime.invalid">Time is required.</mat-error>
+        <mat-error *ngIf="form.controls.interviewTime.invalid">{{ 'Time is required.' | t }}</mat-error>
       </mat-form-field>
     </div>
 
     <mat-form-field appearance="outline" class="full">
-      <mat-label>Short info (optional)</mat-label>
-      <textarea matInput rows="3" formControlName="info" placeholder="What should the student prepare?"></textarea>
+      <mat-label>{{ 'Short info (optional)' | t }}</mat-label>
+      <textarea matInput rows="3" formControlName="info" [placeholder]="'What should the student prepare?' | t"></textarea>
     </mat-form-field>
   </form>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" mat-dialog-close>Cancel</button>
-  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="submit()">Save</button>
+  <button mat-button type="button" mat-dialog-close>{{ 'Cancel' | t }}</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="submit()">{{ 'Save' | t }}</button>
 </mat-dialog-actions>

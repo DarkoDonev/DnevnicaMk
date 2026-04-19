@@ -1,9 +1,9 @@
 <div class="dash">
   <header class="dash-hd">
     <div>
-      <div class="eyebrow">Company Dashboard</div>
-      <h1 class="title">AI Evaluation</h1>
-      <p class="subtitle">Search candidates by skill and run/view AI GitHub evaluations.</p>
+      <div class="eyebrow">{{ 'Company Dashboard' | t }}</div>
+      <h1 class="title">{{ 'AI Evaluation' | t }}</h1>
+      <p class="subtitle">{{ 'Search candidates by skill and run/view AI GitHub evaluations.' | t }}</p>
     </div>
   </header>
 
@@ -12,26 +12,26 @@
       <form class="filters-form" [formGroup]="filters" autocomplete="off">
         <div class="filters-grid">
           <mat-form-field appearance="outline" class="q">
-            <mat-label>Search</mat-label>
+            <mat-label>{{ 'Search' | t }}</mat-label>
             <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-            <input matInput formControlName="query" placeholder="Name, email, location, skill..." />
+            <input matInput formControlName="query" [placeholder]="'Name, email, location, skill...' | t" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Skills</mat-label>
+            <mat-label>{{ 'Skills' | t }}</mat-label>
             <mat-select formControlName="skills" multiple>
               <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
             </mat-select>
-            <mat-hint>Configure years per skill below</mat-hint>
+            <mat-hint>{{ 'Configure years per skill below' | t }}</mat-hint>
           </mat-form-field>
 
           <div class="actions">
-            <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+            <button mat-stroked-button type="button" (click)="clearFilters()">{{ 'Clear' | t }}</button>
           </div>
         </div>
 
         <div class="reqs" *ngIf="requirements.controls.length > 0" formArrayName="requirements">
-          <div class="reqs-hd">Minimum Years of Experience (per skill)</div>
+          <div class="reqs-hd">{{ 'Minimum Years of Experience (per skill)' | t }}</div>
           <div class="reqs-grid">
             <div class="req-row" *ngFor="let g of requirements.controls; let i = index" [formGroupName]="i">
               <div class="req-skill">
@@ -41,16 +41,16 @@
                   type="button"
                   class="req-rm"
                   (click)="removeSkillFilter(g.controls.skillName.value)"
-                  aria-label="Remove skill filter"
+                  [attr.aria-label]="'Remove skill filter' | t"
                 >
                   <mat-icon aria-hidden="true">close</mat-icon>
                 </button>
               </div>
 
               <mat-form-field appearance="outline">
-                <mat-label>Min Years</mat-label>
+                <mat-label>{{ 'Min Years' | t }}</mat-label>
                 <input matInput type="number" min="0" max="50" formControlName="minYears" />
-                <mat-hint>0 = any</mat-hint>
+                <mat-hint>{{ '0 = any' | t }}</mat-hint>
               </mat-form-field>
             </div>
           </div>
@@ -63,7 +63,7 @@
     <div class="results-bar">
       <div class="results-count">
         <mat-icon aria-hidden="true">group</mat-icon>
-        <span>{{ ((filteredStudents$ | async) ?? []).length }} students</span>
+        <span>{{ '{count} students' | t: {count: ((filteredStudents$ | async) ?? []).length} }}</span>
       </div>
     </div>
 
@@ -83,14 +83,14 @@
     <ng-template #loading>
       <div class="state">
         <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-        <div class="state-txt">Loading directory…</div>
+        <div class="state-txt">{{ 'Loading directory…' | t }}</div>
       </div>
     </ng-template>
 
     <ng-template #empty>
       <div class="state">
         <mat-icon class="state-ic" aria-hidden="true">search_off</mat-icon>
-        <div class="state-txt">No students match the current filters.</div>
+        <div class="state-txt">{{ 'No students match the current filters.' | t }}</div>
       </div>
     </ng-template>
   </section>

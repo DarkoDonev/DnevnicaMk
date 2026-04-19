@@ -5,6 +5,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {ApplicationStatus, CompanyJobDetails, JobApplication, JobPost, PotentialStudent} from '../../models';
 import {JobBoardService} from '../../services/job-board.service';
 import {StudentDirectoryService} from '../../services/student-directory.service';
@@ -15,12 +16,14 @@ import {
 } from './hr-interview-schedule-dialog.component';
 
 interface ApplicationAction {
-  label: string;
+  labelKey: AppI18nActionKey;
   status: ApplicationStatus;
   color: 'primary' | 'accent' | 'warn';
   openRejectDialog?: boolean;
   openHrScheduleDialog?: boolean;
 }
+
+type AppI18nActionKey = 'Approve' | 'Reject' | 'HR Interview' | 'Reschedule HR' | 'Mark Done';
 
 interface CompanyJobDetailsVm {
   jobId: number;
@@ -51,13 +54,21 @@ export class CompanyJobDetailsComponent {
       return combineLatest([
         this.jobs.getCompanyJobDetails(jobId).pipe(
           catchError((err: unknown) => {
-            this.snackBar.open(this.toErrorMessage(err, 'Could not load job details.'), 'Dismiss', {duration: 3500});
+            this.snackBar.open(
+              this.toErrorMessage(err, this.i18n.t('Could not load job details.')),
+              this.i18n.t('Dismiss'),
+              {duration: 3500},
+            );
             return of(null);
           }),
         ),
         this.jobs.getPotentialStudents(jobId).pipe(
           catchError((err: unknown) => {
-            this.snackBar.open(this.toErrorMessage(err, 'Could not load potential matches.'), 'Dismiss', {duration: 3500});
+            this.snackBar.open(
+              this.toErrorMessage(err, this.i18n.t('Could not load potential matches.')),
+              this.i18n.t('Dismiss'),
+              {duration: 3500},
+            );
             return of([] as readonly PotentialStudent[]);
           }),
         ),
@@ -80,6 +91,7 @@ export class CompanyJobDetailsComponent {
     private readonly directory: StudentDirectoryService,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackRequirement = (_: number, requirement: JobPost['requirements'][number]) => requirement.skillName;
@@ -93,10 +105,10 @@ export class CompanyJobDetailsComponent {
   }
 
   applicantEvaluationActionLabel(application: JobApplication): string {
-    if (this.isAnalyzingStudent(application.student?.id)) return 'Generating...';
-    if (application.student?.aiEvaluationPreview?.status === 'pending') return 'Running...';
-    if (application.student?.aiEvaluationPreview?.status === 'ready') return 'Re-run AI Summary';
-    return 'Generate AI Summary';
+    if (this.isAnalyzingStudent(application.student?.id)) return this.i18n.t('Running...');
+    if (application.student?.aiEvaluationPreview?.status === 'pending') return this.i18n.t('Running...');
+    if (application.student?.aiEvaluationPreview?.status === 'ready') return this.i18n.t('Re-run AI Summary');
+    return this.i18n.t('Generate AI Summary');
   }
 
   canRunApplicantEvaluation(application: JobApplication): boolean {
@@ -119,15 +131,19 @@ export class CompanyJobDetailsComponent {
         const msg =
           result.status === 'ready'
             ? result.fromCache
-              ? `Used cached AI summary for ${name}.`
-              : `AI summary generated for ${name}.`
-            : `AI summary failed for ${name}.`;
-        this.snackBar.open(msg, 'Dismiss', {duration: 3200});
+              ? this.i18n.t('Used cached AI summary for {name}.', {name})
+              : this.i18n.t('AI summary generated for {name}.', {name})
+            : this.i18n.t('AI summary failed for {name}.', {name});
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3200});
         this.analyzingStudentIds.delete(studentId);
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not run AI summary.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not run AI summary.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
         this.analyzingStudentIds.delete(studentId);
       },
     });
@@ -137,48 +153,52 @@ export class CompanyJobDetailsComponent {
     switch (status) {
       case 'APPLIED':
         return [
-          {label: 'Approve', status: 'APPROVED', color: 'primary'},
-          {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
+          {labelKey: 'Approve', status: 'APPROVED', color: 'primary'},
+          {labelKey: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
         ];
       case 'APPROVED':
         return [
-          {label: 'HR Interview', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
-          {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
+          {labelKey: 'HR Interview', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
+          {labelKey: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
         ];
       case 'HR_INTERVIEW':
         return [
-          {label: 'Reschedule HR', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
-          {label: 'Mark Done', status: 'DONE', color: 'primary'},
-          {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
+          {labelKey: 'Reschedule HR', status: 'HR_INTERVIEW', color: 'accent', openHrScheduleDialog: true},
+          {labelKey: 'Mark Done', status: 'DONE', color: 'primary'},
+          {labelKey: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
         ];
       case 'TECHNICAL_INTERVIEW':
         return [
-          {label: 'Mark Done', status: 'DONE', color: 'primary'},
-          {label: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
+          {labelKey: 'Mark Done', status: 'DONE', color: 'primary'},
+          {labelKey: 'Reject', status: 'REJECTED', color: 'warn', openRejectDialog: true},
         ];
       default:
         return [];
     }
   }
 
+  actionLabel(action: ApplicationAction): string {
+    return this.i18n.t(action.labelKey);
+  }
+
   statusLabel(status: ApplicationStatus): string {
     switch (status) {
       case 'INVITED':
-        return 'Invited';
+        return this.i18n.t('Invited');
       case 'APPLIED':
-        return 'Applied';
+        return this.i18n.t('Applied');
       case 'APPROVED':
-        return 'Approved';
+        return this.i18n.t('Approved');
       case 'HR_INTERVIEW':
-        return 'HR Interview';
+        return this.i18n.t('HR Interview');
       case 'TECHNICAL_INTERVIEW':
-        return 'Technical Interview';
+        return this.i18n.t('Technical Interview');
       case 'DONE':
-        return 'Done';
+        return this.i18n.t('Done');
       case 'DECLINED':
-        return 'Declined';
+        return this.i18n.t('Declined');
       case 'REJECTED':
-        return 'Rejected';
+        return this.i18n.t('Rejected');
       default:
         return status;
     }
@@ -210,19 +230,26 @@ export class CompanyJobDetailsComponent {
   listingTypeLabel(job: JobPost): string {
     const hasJob = !!job.isJob;
     const hasInternship = !!job.isInternship;
-    if (hasJob && hasInternship) return 'Work + Internship';
-    if (hasJob) return 'Work';
-    if (hasInternship) return 'Internship';
-    return 'Unspecified';
+    if (hasJob && hasInternship) return this.i18n.t('Work + Internship');
+    if (hasJob) return this.i18n.t('Work');
+    if (hasInternship) return this.i18n.t('Internship');
+    return this.i18n.t('Unspecified');
   }
 
   seekingLabel(student: PotentialStudent): string {
     const seeksJob = !!student.seekingJob;
     const seeksInternship = !!student.seekingInternship;
-    if (seeksJob && seeksInternship) return 'Work + Internship';
-    if (seeksJob) return 'Work';
-    if (seeksInternship) return 'Internship';
-    return 'None selected';
+    if (seeksJob && seeksInternship) return this.i18n.t('Work + Internship');
+    if (seeksJob) return this.i18n.t('Work');
+    if (seeksInternship) return this.i18n.t('Internship');
+    return this.i18n.t('None selected');
+  }
+
+  workModeLabel(mode: JobPost['workMode']): string {
+    if (mode === 'Remote') return this.i18n.t('Remote');
+    if (mode === 'Hybrid') return this.i18n.t('Hybrid');
+    if (mode === 'On-site') return this.i18n.t('On-site');
+    return mode;
   }
 
   updateStatus(application: JobApplication, action: ApplicationAction): void {
@@ -233,7 +260,7 @@ export class CompanyJobDetailsComponent {
         width: '560px',
         maxWidth: '96vw',
         data: {
-          applicantName: application.student?.name ?? 'Applicant',
+          applicantName: application.student?.name ?? this.i18n.t('Applicant'),
           currentInterview: application.hrInterview,
         },
       });
@@ -249,7 +276,7 @@ export class CompanyJobDetailsComponent {
       const dialogRef = this.dialog.open(RejectApplicationDialogComponent, {
         width: '520px',
         data: {
-          applicantName: application.student?.name ?? 'Applicant',
+          applicantName: application.student?.name ?? this.i18n.t('Applicant'),
           jobTitle: application.job.title,
         },
       });
@@ -270,12 +297,16 @@ export class CompanyJobDetailsComponent {
 
     this.jobs.inviteStudent(jobId, studentId).subscribe({
       next: () => {
-        this.snackBar.open('Request sent to student.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Request sent to student.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.invitingStudentId = null;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not send request.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not send request.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
         this.invitingStudentId = null;
       },
     });
@@ -298,12 +329,16 @@ export class CompanyJobDetailsComponent {
       })
       .subscribe({
       next: () => {
-        this.snackBar.open('Application status updated.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Application status updated.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.updatingApplicationId = null;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not update application status.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not update application status.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
         this.updatingApplicationId = null;
       },
     });

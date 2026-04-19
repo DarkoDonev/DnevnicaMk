@@ -1,9 +1,9 @@
 <div class="page">
   <header class="page-hd">
     <div>
-      <div class="eyebrow">Student</div>
-      <h1 class="title">Explore Jobs</h1>
-      <p class="subtitle">Search job posts and filter by multiple skills.</p>
+      <div class="eyebrow">{{ 'Student' | t }}</div>
+      <h1 class="title">{{ 'Explore Jobs' | t }}</h1>
+      <p class="subtitle">{{ 'Search job posts and filter by multiple skills.' | t }}</p>
     </div>
   </header>
 
@@ -11,36 +11,36 @@
     <mat-card-content>
       <form class="filters-grid" [formGroup]="filters" autocomplete="off">
         <mat-form-field appearance="outline" class="q">
-          <mat-label>Search</mat-label>
+          <mat-label>{{ 'Search' | t }}</mat-label>
           <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-          <input matInput formControlName="query" placeholder="Title, company, location, skill..." />
+          <input matInput formControlName="query" [placeholder]="'Title, company, location, skill...' | t" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Skills</mat-label>
+          <mat-label>{{ 'Skills' | t }}</mat-label>
           <mat-select formControlName="skills" multiple>
             <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
           </mat-select>
-          <mat-hint>Matches any selected skill</mat-hint>
+          <mat-hint>{{ 'Matches any selected skill' | t }}</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Work Mode</mat-label>
+          <mat-label>{{ 'Work Mode' | t }}</mat-label>
           <mat-select formControlName="workMode">
-            <mat-option *ngFor="let m of workModeOptions" [value]="m">{{ m }}</mat-option>
+            <mat-option *ngFor="let m of workModeOptions" [value]="m">{{ workModeLabel(m) }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <div class="type-filter">
-          <div class="type-filter-hd">Type</div>
+          <div class="type-filter-hd">{{ 'Type' | t }}</div>
           <div class="type-filter-grid">
-            <mat-checkbox formControlName="includeJobs">Work</mat-checkbox>
-            <mat-checkbox formControlName="includeInternships">Internship</mat-checkbox>
+            <mat-checkbox formControlName="includeJobs">{{ 'Work' | t }}</mat-checkbox>
+            <mat-checkbox formControlName="includeInternships">{{ 'Internship' | t }}</mat-checkbox>
           </div>
         </div>
 
         <div class="actions">
-          <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+          <button mat-stroked-button type="button" (click)="clearFilters()">{{ 'Clear' | t }}</button>
         </div>
       </form>
     </mat-card-content>
@@ -50,7 +50,7 @@
     <div class="results-bar">
       <div class="results-count">
         <mat-icon aria-hidden="true">work</mat-icon>
-        <span>{{ ((jobsVm$ | async)?.jobs ?? []).length }} jobs</span>
+        <span>{{ '{count} jobs' | t: {count: ((jobsVm$ | async)?.jobs ?? []).length} }}</span>
       </div>
     </div>
 
@@ -73,14 +73,14 @@
     <ng-template #loading>
       <div class="state">
         <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-        <div class="state-txt">Loading jobs…</div>
+        <div class="state-txt">{{ 'Loading jobs…' | t }}</div>
       </div>
     </ng-template>
 
     <ng-template #empty>
       <div class="state">
         <mat-icon class="state-ic" aria-hidden="true">search_off</mat-icon>
-        <div class="state-txt">No jobs match the current filters.</div>
+        <div class="state-txt">{{ 'No jobs match the current filters.' | t }}</div>
       </div>
     </ng-template>
   </section>

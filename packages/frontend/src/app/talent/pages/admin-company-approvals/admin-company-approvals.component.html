@@ -1,11 +1,11 @@
 <div class="approvals-page">
   <section class="header">
-    <h1>Company Approval Queue</h1>
-    <p>Review company registrations and decide whether they can access the platform.</p>
+    <h1>{{ 'Company Approval Queue' | t }}</h1>
+    <p>{{ 'Review company registrations and decide whether they can access the platform.' | t }}</p>
 
-    <mat-button-toggle-group [formControl]="statusControl" aria-label="Status filter">
+    <mat-button-toggle-group [formControl]="statusControl" [attr.aria-label]="'Status filter' | t">
       <mat-button-toggle *ngFor="let status of statuses" [value]="status">
-        {{ status | titlecase }}
+        {{ statusLabel(status) }}
       </mat-button-toggle>
     </mat-button-toggle-group>
   </section>
@@ -19,17 +19,17 @@
         </mat-card-header>
 
         <mat-card-content class="details">
-          <div><strong>Status:</strong> {{ item.registrationStatus | titlecase }}</div>
-          <div><strong>Location:</strong> {{ item.location }}</div>
-          <div><strong>Website:</strong> {{ item.websiteUrl || 'N/A' }}</div>
-          <div><strong>Requested:</strong> {{ item.createdAtIso | date: 'medium' }}</div>
-          <div *ngIf="item.reviewedAtIso"><strong>Reviewed:</strong> {{ item.reviewedAtIso | date: 'medium' }}</div>
-          <div *ngIf="item.reviewNote"><strong>Review Note:</strong> {{ item.reviewNote }}</div>
+          <div><strong>{{ 'Status' | t }}:</strong> {{ statusLabel(item.registrationStatus) }}</div>
+          <div><strong>{{ 'Location:' | t }}</strong> {{ item.location }}</div>
+          <div><strong>{{ 'Website' | t }}:</strong> {{ item.websiteUrl || ('N/A' | t) }}</div>
+          <div><strong>{{ 'Requested:' | t }}</strong> {{ item.createdAtIso | l10nDate: 'medium' }}</div>
+          <div *ngIf="item.reviewedAtIso"><strong>{{ 'Reviewed:' | t }}</strong> {{ item.reviewedAtIso | l10nDate: 'medium' }}</div>
+          <div *ngIf="item.reviewNote"><strong>{{ 'Review Note:' | t }}</strong> {{ item.reviewNote }}</div>
         </mat-card-content>
 
         <mat-card-actions class="actions" *ngIf="item.registrationStatus === 'pending'">
           <mat-form-field appearance="outline" class="note-field">
-            <mat-label>Optional admin note</mat-label>
+            <mat-label>{{ 'Optional admin note' | t }}</mat-label>
             <textarea
               matInput
               rows="2"
@@ -39,8 +39,8 @@
           </mat-form-field>
 
           <div class="buttons">
-            <button mat-flat-button color="primary" [disabled]="isActing(item.id)" (click)="approve(item)">Approve</button>
-            <button mat-stroked-button color="warn" [disabled]="isActing(item.id)" (click)="reject(item)">Reject</button>
+            <button mat-flat-button color="primary" [disabled]="isActing(item.id)" (click)="approve(item)">{{ 'Approve' | t }}</button>
+            <button mat-stroked-button color="warn" [disabled]="isActing(item.id)" (click)="reject(item)">{{ 'Reject' | t }}</button>
           </div>
         </mat-card-actions>
       </mat-card>
@@ -49,7 +49,7 @@
 
   <ng-template #empty>
     <mat-card appearance="outlined">
-      <mat-card-content>No companies found for the selected status.</mat-card-content>
+      <mat-card-content>{{ 'No companies found for the selected status.' | t }}</mat-card-content>
     </mat-card>
   </ng-template>
 </div>

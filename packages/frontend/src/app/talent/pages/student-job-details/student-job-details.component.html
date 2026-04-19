@@ -2,43 +2,43 @@
   <header class="page-hd">
     <a mat-button routerLink="/student/jobs">
       <mat-icon aria-hidden="true">arrow_back</mat-icon>
-      Back to Jobs
+      {{ 'Back to Jobs' | t }}
     </a>
   </header>
 
   <ng-container *ngIf="vm$ | async as vm; else loading">
     <ng-container *ngIf="vm; else failed">
       <header class="hero">
-        <div class="eyebrow">Student</div>
+        <div class="eyebrow">{{ 'Student' | t }}</div>
         <h1 class="title">{{ vm.job.title }}</h1>
         <p class="subtitle">
-          {{ vm.job.companyName }} • {{ vm.job.location }} • {{ vm.job.workMode }} • {{ listingTypeLabel(vm.job) }}
+          {{ vm.job.companyName }} • {{ vm.job.location }} • {{ workModeLabel(vm.job.workMode) }} • {{ listingTypeLabel(vm.job) }}
         </p>
       </header>
 
       <mat-card class="summary" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Job Summary</mat-card-title>
-          <mat-card-subtitle>Read-only details for this role</mat-card-subtitle>
+          <mat-card-title>{{ 'Job Summary' | t }}</mat-card-title>
+          <mat-card-subtitle>{{ 'Read-only details for this role' | t }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
           <p class="desc">{{ vm.job.description }}</p>
 
           <div class="requirements" *ngIf="vm.job.requirements.length > 0; else noRequirements">
-            <div class="req-title">Required Skills</div>
+            <div class="req-title">{{ 'Required Skills' | t }}</div>
             <mat-chip-set>
               <mat-chip *ngFor="let requirement of vm.job.requirements; trackBy: trackRequirement">
-                {{ requirement.skillName }} • {{ requirement.minYears }}y+
+                {{ requirement.skillName }} • {{ '{years}y+' | t: {years: requirement.minYears} }}
               </mat-chip>
             </mat-chip-set>
           </div>
           <ng-template #noRequirements>
-            <div class="meta-item">No specific skills listed.</div>
+            <div class="meta-item">{{ 'No specific skills listed.' | t }}</div>
           </ng-template>
 
           <div class="meta">
-            <span class="meta-item" *ngIf="postedAtLabel(vm.job.postedAtIso)">Posted {{ postedAtLabel(vm.job.postedAtIso) }}</span>
+            <span class="meta-item" *ngIf="postedAtLabel(vm.job.postedAtIso)">{{ 'Posted' | t }} {{ postedAtLabel(vm.job.postedAtIso) }}</span>
           </div>
         </mat-card-content>
 
@@ -53,11 +53,11 @@
             (click)="applyToJob(vm.jobId, false)"
           >
             <mat-icon aria-hidden="true">{{ applying ? 'hourglass_top' : 'send' }}</mat-icon>
-            {{ applying ? 'Applying...' : 'Apply' }}
+            {{ applying ? ('Applying...' | t) : ('Apply' | t) }}
           </button>
           <button mat-stroked-button type="button" disabled *ngIf="vm.application">
             <mat-icon aria-hidden="true">check_circle</mat-icon>
-            Already Applied
+            {{ 'Already Applied' | t }}
           </button>
         </mat-card-actions>
       </mat-card>
@@ -67,14 +67,14 @@
   <ng-template #loading>
     <div class="state">
       <mat-progress-spinner mode="indeterminate" diameter="34"></mat-progress-spinner>
-      <span>Loading job details...</span>
+      <span>{{ 'Loading job details...' | t }}</span>
     </div>
   </ng-template>
 
   <ng-template #failed>
     <div class="state">
       <mat-icon aria-hidden="true">error_outline</mat-icon>
-      <span>Could not load this job details page.</span>
+      <span>{{ 'Could not load this job details page.' | t }}</span>
     </div>
   </ng-template>
 </div>

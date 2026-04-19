@@ -4,6 +4,7 @@ import {NonNullableFormBuilder, Validators} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, map, of, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {StudentDirectoryService} from '../../services/student-directory.service';
 import {Student, StudentAiEvaluationDetails} from '../../models';
 import {TechSkillsService} from '../../services/tech-skills.service';
@@ -61,6 +62,7 @@ export class StudentProfileComponent implements OnDestroy {
     private readonly fb: NonNullableFormBuilder,
     private readonly snackBar: MatSnackBar,
     private readonly skillService: TechSkillsService,
+    private readonly i18n: LocalizationService,
   ) {
     this.student$.pipe(takeUntil(this.destroy$)).subscribe((student) => this.patchProfileForm(student));
   }
@@ -78,13 +80,13 @@ export class StudentProfileComponent implements OnDestroy {
 
     this.directory.addOrUpdateSkill(skillName, yearsOfExperience).subscribe({
       next: () => {
-        this.snackBar.open('Skills updated.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Skills updated.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.isSaving = false;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not update skills.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not update skills.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.isSaving = false;
       },
     });
@@ -109,15 +111,15 @@ export class StudentProfileComponent implements OnDestroy {
       })
       .subscribe({
         next: () => {
-          this.snackBar.open('Profile updated.', 'Dismiss', {duration: 2500});
+          this.snackBar.open(this.i18n.t('Profile updated.'), this.i18n.t('Dismiss'), {duration: 2500});
           this.isSaving = false;
           this.profileForm.markAsPristine();
           this.profileForm.markAsUntouched();
           this.reload$.next();
         },
         error: (err: unknown) => {
-          const msg = err instanceof Error ? err.message : 'Could not update profile.';
-          this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+          const msg = err instanceof Error ? err.message : this.i18n.t('Could not update profile.');
+          this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
           this.isSaving = false;
         },
       });
@@ -130,14 +132,14 @@ export class StudentProfileComponent implements OnDestroy {
     this.isSaving = true;
     this.directory.uploadCv(file).subscribe({
       next: () => {
-        this.snackBar.open('CV uploaded.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('CV uploaded.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.isSaving = false;
         input.value = '';
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not upload CV.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not upload CV.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.isSaving = false;
       },
     });
@@ -150,14 +152,14 @@ export class StudentProfileComponent implements OnDestroy {
     this.isSaving = true;
     this.directory.uploadProfileImage(file).subscribe({
       next: () => {
-        this.snackBar.open('Profile photo uploaded.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Profile photo uploaded.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.isSaving = false;
         input.value = '';
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not upload profile photo.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not upload profile photo.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.isSaving = false;
       },
     });
@@ -169,13 +171,13 @@ export class StudentProfileComponent implements OnDestroy {
 
     this.directory.removeSkill(skillName).subscribe({
       next: () => {
-        this.snackBar.open('Skill removed.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Skill removed.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.isSaving = false;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not remove skill.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not remove skill.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.isSaving = false;
       },
     });
@@ -183,7 +185,7 @@ export class StudentProfileComponent implements OnDestroy {
 
   runEvaluation(evaluation: StudentAiEvaluationDetails | null, hasGithubUrl: boolean): void {
     if (!hasGithubUrl) {
-      this.snackBar.open('Please add your GitHub URL first, then save profile.', 'Dismiss', {duration: 3500});
+      this.snackBar.open(this.i18n.t('Please add your GitHub URL first, then save profile.'), this.i18n.t('Dismiss'), {duration: 3500});
       return;
     }
     if (this.isRunningEvaluation || evaluation?.status === 'pending') return;
@@ -193,13 +195,17 @@ export class StudentProfileComponent implements OnDestroy {
 
     this.directory.runMyEvaluation(force).subscribe({
       next: (result) => {
-        const msg = result.fromCache ? 'Used cached AI summary.' : 'AI summary generated.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 2500});
+        const msg = result.fromCache ? this.i18n.t('Used cached AI summary.') : this.i18n.t('AI summary generated.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 2500});
         this.isRunningEvaluation = false;
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.readErrorMessage(err, 'Could not run AI GitHub evaluation.'), 'Dismiss', {duration: 4000});
+        this.snackBar.open(
+          this.readErrorMessage(err, this.i18n.t('Could not run AI GitHub evaluation.')),
+          this.i18n.t('Dismiss'),
+          {duration: 4000},
+        );
         this.isRunningEvaluation = false;
       },
     });
@@ -254,32 +260,32 @@ export class StudentProfileComponent implements OnDestroy {
   evaluationStatusLabel(evaluation: StudentAiEvaluationDetails | null): string {
     switch (evaluation?.status) {
       case 'ready':
-        return 'Ready';
+        return this.i18n.t('Ready');
       case 'pending':
-        return 'Running';
+        return this.i18n.t('Running');
       case 'failed':
-        return 'Failed';
+        return this.i18n.t('Failed');
       case 'none':
       default:
-        return 'Not analyzed';
+        return this.i18n.t('Not analyzed');
     }
   }
 
   evaluationActionLabel(evaluation: StudentAiEvaluationDetails | null): string {
-    if (this.isRunningEvaluation || evaluation?.status === 'pending') return 'Running...';
-    if (evaluation?.status === 'ready') return 'Re-run AI Summary';
-    return 'Generate AI Summary';
+    if (this.isRunningEvaluation || evaluation?.status === 'pending') return this.i18n.t('Running...');
+    if (evaluation?.status === 'ready') return this.i18n.t('Re-run AI Summary');
+    return this.i18n.t('Generate AI Summary');
   }
 
   formatIsoDate(iso: string | null): string {
-    if (!iso) return 'N/A';
+    if (!iso) return this.i18n.t('N/A');
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return 'N/A';
-    return d.toLocaleString();
+    if (Number.isNaN(d.getTime())) return this.i18n.t('N/A');
+    return d.toLocaleString(this.i18n.currentDateLocale);
   }
 
   asPercent(v: number | null | undefined): string {
-    if (v === null || v === undefined) return 'N/A';
+    if (v === null || v === undefined) return this.i18n.t('N/A');
     return `${Math.round(v * 100)}%`;
   }
 

@@ -68,6 +68,12 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+.language-trigger {
+  margin-right: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .profile-tab {
   display: inline-flex;
   align-items: center;
@@ -181,6 +187,9 @@
     display: none;
   }
   .notifications-trigger {
+    margin-right: 6px;
+  }
+  .language-trigger {
     margin-right: 6px;
   }
   .profile-tab span {

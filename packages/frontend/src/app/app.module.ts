@@ -13,8 +13,10 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {FileUploadModule} from 'ng2-file-upload';
 import {ComponentsModule} from './_components/components.module';
 import {MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule,} from '@angular/material-moment-adapter';
-import {DatePipe} from '@angular/common';
+import {DatePipe, registerLocaleData} from '@angular/common';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
+import localeEnGb from '@angular/common/locales/en-GB';
+import localeMk from '@angular/common/locales/mk';
 import {LoginComponent} from './talent/pages/login/login.component';
 import {RegisterComponent} from './talent/pages/register/register.component';
 import {CompanyDashboardComponent} from './talent/pages/company-dashboard/company-dashboard.component';
@@ -36,6 +38,12 @@ import {AdminCompanyApprovalsComponent} from './talent/pages/admin-company-appro
 import {EventsPageComponent} from './talent/pages/events-page/events-page.component';
 import {CompanyJobDetailsComponent} from './talent/pages/company-job-details/company-job-details.component';
 import {HrInterviewScheduleDialogComponent} from './talent/pages/company-job-details/hr-interview-schedule-dialog.component';
+import {LocalizationService} from './i18n/localization.service';
+import {TranslatePipe} from './i18n/t.pipe';
+import {L10nDatePipe} from './i18n/l10n-date.pipe';
+
+registerLocaleData(localeEnGb, 'en-GB');
+registerLocaleData(localeMk, 'mk');
 
 @NgModule({
   declarations: [
@@ -60,6 +68,8 @@ import {HrInterviewScheduleDialogComponent} from './talent/pages/company-job-det
     CompanyRegistrationPendingComponent,
     AdminCompanyApprovalsComponent,
     EventsPageComponent,
+    TranslatePipe,
+    L10nDatePipe,
   ],
   imports: [
     BrowserModule,
@@ -77,7 +87,11 @@ import {HrInterviewScheduleDialogComponent} from './talent/pages/company-job-det
   providers: [
     ComponentsModule,
     {provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: {useUtc: true}},
-    {provide: MAT_DATE_LOCALE, useValue: 'en-GB'},
+    {
+      provide: MAT_DATE_LOCALE,
+      deps: [LocalizationService],
+      useFactory: (i18n: LocalizationService) => i18n.currentMaterialLocale,
+    },
     DatePipe,
     provideAnimationsAsync(),
     {provide: HTTP_INTERCEPTORS, useClass: AuthTokenInterceptor, multi: true},

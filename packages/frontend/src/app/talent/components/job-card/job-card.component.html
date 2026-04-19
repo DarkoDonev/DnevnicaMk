@@ -12,22 +12,22 @@
       <span class="dot" aria-hidden="true">•</span>
       <span class="loc">{{ job.location }}</span>
       <span class="dot" aria-hidden="true">•</span>
-      <span class="mode">{{ job.workMode }}</span>
+      <span class="mode">{{ workModeLabel(job.workMode) }}</span>
       <span class="dot" aria-hidden="true">•</span>
       <span class="type">{{ listingTypeLabel }}</span>
     </mat-card-subtitle>
   </mat-card-header>
 
   <mat-card-content>
-    <div class="posted" *ngIf="postedAtLabel">Posted {{ postedAtLabel }}</div>
+    <div class="posted" *ngIf="postedAtLabel">{{ 'Posted' | t }} {{ postedAtLabel }}</div>
     <p class="desc">{{ job.description }}</p>
 
     <div class="reqs">
-      <div class="reqs-hd">Required Skills</div>
-      <mat-chip-set aria-label="Job requirements">
+      <div class="reqs-hd">{{ 'Required Skills' | t }}</div>
+      <mat-chip-set [attr.aria-label]="'Job requirements' | t">
         <mat-chip *ngFor="let r of job.requirements; trackBy: trackReq" class="req-chip">
           <span class="req-skill">{{ r.skillName }}</span>
-          <span class="req-years">{{ r.minYears }}y+</span>
+          <span class="req-years">{{ '{years}y+' | t: {years: r.minYears} }}</span>
         </mat-chip>
       </mat-chip-set>
     </div>
@@ -36,7 +36,7 @@
   <mat-card-actions align="end">
     <button mat-stroked-button type="button" *ngIf="showDetailsAction" (click)="onViewDetails()">
       <mat-icon aria-hidden="true">visibility</mat-icon>
-      <span>Details</span>
+      <span>{{ 'Details' | t }}</span>
     </button>
     <button
       mat-flat-button
@@ -47,7 +47,7 @@
       (click)="onApply()"
     >
       <mat-icon aria-hidden="true">{{ applyLoading ? 'hourglass_top' : 'send' }}</mat-icon>
-      <span>{{ applyLoading ? 'Applying...' : applyStatusLabel ? 'Applied' : 'Apply' }}</span>
+      <span>{{ applyLoading ? ('Applying...' | t) : applyStatusLabel ? ('Applied' | t) : ('Apply' | t) }}</span>
     </button>
   </mat-card-actions>
 </mat-card>

@@ -1,9 +1,9 @@
 <div class="page">
   <header class="page-hd">
     <div>
-      <div class="eyebrow">Student</div>
-      <h1 class="title">My Applications</h1>
-      <p class="subtitle">Track your job applications, interview phases, and rejection feedback.</p>
+      <div class="eyebrow">{{ 'Student' | t }}</div>
+      <h1 class="title">{{ 'My Applications' | t }}</h1>
+      <p class="subtitle">{{ 'Track your job applications, interview phases, and rejection feedback.' | t }}</p>
     </div>
   </header>
 
@@ -11,7 +11,7 @@
     <div class="results-bar">
       <div class="results-count">
         <mat-icon aria-hidden="true">assignment</mat-icon>
-        <span>{{ ((applications$ | async) ?? []).length }} applications</span>
+        <span>{{ '{count} applications' | t: {count: ((applications$ | async) ?? []).length} }}</span>
       </div>
     </div>
 
@@ -21,7 +21,7 @@
           <mat-card-header>
             <mat-card-title>{{ app.job.title }}</mat-card-title>
             <mat-card-subtitle>
-              {{ app.job.companyName }} • {{ app.job.location }} • {{ app.job.workMode }} • {{ jobTypeLabel(app.job) }}
+              {{ app.job.companyName }} • {{ app.job.location }} • {{ workModeLabel(app.job.workMode) }} • {{ jobTypeLabel(app.job) }}
             </mat-card-subtitle>
           </mat-card-header>
 
@@ -41,7 +41,7 @@
                 (click)="respondToInvitation(app, 'ACCEPT')"
               >
                 <mat-icon aria-hidden="true">check_circle</mat-icon>
-                Accept
+                {{ 'Accept' | t }}
               </button>
               <button
                 mat-stroked-button
@@ -51,24 +51,24 @@
                 (click)="respondToInvitation(app, 'DECLINE')"
               >
                 <mat-icon aria-hidden="true">close</mat-icon>
-                Decline
+                {{ 'Decline' | t }}
               </button>
             </div>
 
             <div class="timestamps">
-              <div>Applied: {{ app.createdAtIso | date: 'MMM d, y, HH:mm' }}</div>
-              <div>Updated: {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+              <div>{{ 'Applied:' | t }} {{ app.createdAtIso | l10nDate: 'MMM d, y, HH:mm' }}</div>
+              <div>{{ 'Updated:' | t }} {{ app.updatedAtIso | l10nDate: 'MMM d, y, HH:mm' }}</div>
             </div>
 
             <div class="interview" *ngIf="app.status === 'HR_INTERVIEW' && app.hrInterview">
-              <div class="interview-hd">HR interview details</div>
-              <div><strong>Time:</strong> {{ app.hrInterview.atIso | date: 'MMM d, y, HH:mm' }}</div>
-              <div><strong>Location:</strong> {{ app.hrInterview.location }}</div>
-              <div *ngIf="app.hrInterview.info"><strong>Info:</strong> {{ app.hrInterview.info }}</div>
+              <div class="interview-hd">{{ 'HR interview details' | t }}</div>
+              <div><strong>{{ 'Time:' | t }}</strong> {{ app.hrInterview.atIso | l10nDate: 'MMM d, y, HH:mm' }}</div>
+              <div><strong>{{ 'Location:' | t }}</strong> {{ app.hrInterview.location }}</div>
+              <div *ngIf="app.hrInterview.info"><strong>{{ 'Info:' | t }}</strong> {{ app.hrInterview.info }}</div>
             </div>
 
             <div class="reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
-              <div class="reason-hd">Rejection reason</div>
+              <div class="reason-hd">{{ 'Rejection reason' | t }}</div>
               <div class="reason-text">{{ app.rejectionReason }}</div>
             </div>
           </mat-card-content>
@@ -79,14 +79,14 @@
     <ng-template #loading>
       <div class="state">
         <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-        <div class="state-txt">Loading applications…</div>
+        <div class="state-txt">{{ 'Loading applications…' | t }}</div>
       </div>
     </ng-template>
 
     <ng-template #empty>
       <div class="state">
         <mat-icon class="state-ic" aria-hidden="true">inbox</mat-icon>
-        <div class="state-txt">You have not applied to any jobs yet.</div>
+        <div class="state-txt">{{ 'You have not applied to any jobs yet.' | t }}</div>
       </div>
     </ng-template>
   </section>

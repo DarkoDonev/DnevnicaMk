@@ -1,57 +1,57 @@
 <div class="page">
   <header class="page-hd">
     <div>
-      <div class="eyebrow">Community</div>
-      <h1 class="title">Events</h1>
-      <p class="subtitle">Upcoming hiring and career events, including company-published opportunities.</p>
+      <div class="eyebrow">{{ 'Community' | t }}</div>
+      <h1 class="title">{{ 'Events' | t }}</h1>
+      <p class="subtitle">{{ 'Upcoming hiring and career events, including company-published opportunities.' | t }}</p>
     </div>
   </header>
 
   <mat-card class="create-card" appearance="outlined" *ngIf="isCompany$ | async">
     <mat-card-header>
-      <mat-card-title>Create Event</mat-card-title>
-      <mat-card-subtitle>Publish a hiring event visible to students immediately.</mat-card-subtitle>
+      <mat-card-title>{{ 'Create Event' | t }}</mat-card-title>
+      <mat-card-subtitle>{{ 'Publish a hiring event visible to students immediately.' | t }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <form class="create-form" [formGroup]="createForm" (ngSubmit)="submitCompanyEvent()" autocomplete="off">
         <mat-form-field appearance="outline">
-          <mat-label>Title</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. Summer Internship Open Day" />
+          <mat-label>{{ 'Title' | t }}</mat-label>
+          <input matInput formControlName="title" [placeholder]="'e.g. Summer Internship Open Day' | t" />
         </mat-form-field>
 
         <div class="two">
           <mat-form-field appearance="outline">
-            <mat-label>Start Date</mat-label>
+            <mat-label>{{ 'Start Date' | t }}</mat-label>
             <input matInput [matDatepicker]="eventStartDatePicker" formControlName="startsAtDate" />
             <mat-datepicker-toggle matIconSuffix [for]="eventStartDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #eventStartDatePicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Start Time</mat-label>
+            <mat-label>{{ 'Start Time' | t }}</mat-label>
             <input matInput type="time" formControlName="startsAtTime" />
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline">
-          <mat-label>Location</mat-label>
-          <input matInput formControlName="location" placeholder="Optional" />
+          <mat-label>{{ 'Location' | t }}</mat-label>
+          <input matInput formControlName="location" [placeholder]="'Optional' | t" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Event URL</mat-label>
-          <input matInput formControlName="eventUrl" placeholder="https://..." />
+          <mat-label>{{ 'Event URL' | t }}</mat-label>
+          <input matInput formControlName="eventUrl" [placeholder]="'https://...' | t" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Short Snippet</mat-label>
-          <textarea matInput rows="3" formControlName="snippet" placeholder="Optional brief info"></textarea>
+          <mat-label>{{ 'Short Snippet' | t }}</mat-label>
+          <textarea matInput rows="3" formControlName="snippet" [placeholder]="'Optional brief info' | t"></textarea>
         </mat-form-field>
 
         <button mat-flat-button color="primary" type="submit" [disabled]="createForm.invalid || isSubmitting">
           <mat-icon aria-hidden="true">publish</mat-icon>
-          {{ isSubmitting ? 'Publishing...' : 'Publish Event' }}
+          {{ isSubmitting ? ('Publishing...' | t) : ('Publish Event' | t) }}
         </button>
       </form>
     </mat-card-content>
@@ -60,7 +60,7 @@
   <ng-container *ngIf="state$ | async as state">
     <section class="state" *ngIf="state.status === 'loading'">
       <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-      <div class="state-txt">Loading events...</div>
+      <div class="state-txt">{{ 'Loading events...' | t }}</div>
     </section>
 
     <section class="state" *ngIf="state.status === 'error'">
@@ -74,20 +74,20 @@
           <div class="card-head">
             <h3 class="event-title">{{ event.title }}</h3>
             <a class="event-link" [href]="event.eventUrl" target="_blank" rel="noopener noreferrer">
-              Open
+              {{ 'Open' | t }}
               <mat-icon aria-hidden="true">open_in_new</mat-icon>
             </a>
           </div>
 
           <div class="badges">
-            <span class="badge company" *ngIf="event.createdByCompany">Company Event</span>
-            <span class="badge scraped" *ngIf="!event.createdByCompany">Scraped Event</span>
+            <span class="badge company" *ngIf="event.createdByCompany">{{ 'Company Event' | t }}</span>
+            <span class="badge scraped" *ngIf="!event.createdByCompany">{{ 'Scraped Event' | t }}</span>
           </div>
 
           <div class="meta">
             <div class="meta-item">
               <mat-icon aria-hidden="true">event</mat-icon>
-              <span>{{ event.startsAtIso | date: 'dd MMM yyyy, HH:mm' }}</span>
+              <span>{{ event.startsAtIso | l10nDate: 'dd MMM yyyy, HH:mm' }}</span>
             </div>
             <div class="meta-item" *ngIf="event.location">
               <mat-icon aria-hidden="true">location_on</mat-icon>
@@ -110,7 +110,7 @@
 
     <section class="state" *ngIf="state.status === 'ready' && state.data.length === 0">
       <mat-icon class="state-ic" aria-hidden="true">event_busy</mat-icon>
-      <div class="state-txt">No upcoming events found at the moment.</div>
+      <div class="state-txt">{{ 'No upcoming events found at the moment.' | t }}</div>
     </section>
   </ng-container>
 </div>

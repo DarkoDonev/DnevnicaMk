@@ -1,9 +1,9 @@
 <div class="profile">
   <header class="profile-hd">
     <div>
-      <div class="eyebrow">Student Profile</div>
-      <h1 class="title">Your Skills Snapshot</h1>
-      <p class="subtitle">A simple view of your profile and skill experience.</p>
+      <div class="eyebrow">{{ 'Student Profile' | t }}</div>
+      <h1 class="title">{{ 'Your Skills Snapshot' | t }}</h1>
+      <p class="subtitle">{{ 'A simple view of your profile and skill experience.' | t }}</p>
     </div>
   </header>
 
@@ -15,7 +15,7 @@
             <img
               *ngIf="student.profileImageUrl; else studentInitials"
               [src]="profileImageHref(student.profileImageUrl)"
-              [alt]="student.name + ' profile photo'"
+              [alt]="'Profile photo for {name}' | t: {name: student.name}"
               class="avatar-img"
             />
             <ng-template #studentInitials>{{ initialsFor(student.name) }}</ng-template>
@@ -27,71 +27,71 @@
         <mat-card-content>
           <div class="grid">
             <div class="section">
-              <div class="section-hd">Profile</div>
+              <div class="section-hd">{{ 'Profile' | t }}</div>
               <div class="kv">
                 <mat-icon aria-hidden="true">mail</mat-icon>
                 <div>
-                  <div class="k">Email</div>
+                  <div class="k">{{ 'Email' | t }}</div>
                   <div class="v">{{ student.contact.email }}</div>
                 </div>
               </div>
 
               <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
                 <mat-form-field appearance="outline">
-                  <mat-label>Full Name</mat-label>
+                  <mat-label>{{ 'Full Name' | t }}</mat-label>
                   <input matInput formControlName="name" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Headline</mat-label>
+                  <mat-label>{{ 'Headline' | t }}</mat-label>
                   <input matInput formControlName="headline" />
                 </mat-form-field>
 
                 <div class="two">
                   <mat-form-field appearance="outline">
-                    <mat-label>Phone</mat-label>
+                    <mat-label>{{ 'Phone' | t }}</mat-label>
                     <input matInput formControlName="phone" />
                   </mat-form-field>
 
                   <mat-form-field appearance="outline">
-                    <mat-label>Location</mat-label>
+                    <mat-label>{{ 'Location' | t }}</mat-label>
                     <input matInput formControlName="location" />
                   </mat-form-field>
                 </div>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>LinkedIn URL</mat-label>
+                  <mat-label>{{ 'LinkedIn URL' | t }}</mat-label>
                   <input matInput formControlName="linkedInUrl" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>GitHub URL</mat-label>
+                  <mat-label>{{ 'GitHub URL' | t }}</mat-label>
                   <input matInput formControlName="githubUrl" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Bio</mat-label>
+                  <mat-label>{{ 'Bio' | t }}</mat-label>
                   <textarea matInput rows="4" formControlName="bio"></textarea>
                 </mat-form-field>
 
                 <div class="pref">
-                  <div class="pref-hd">I am looking for</div>
+                  <div class="pref-hd">{{ 'I am looking for' | t }}</div>
                   <div class="pref-grid">
-                    <mat-checkbox formControlName="seekingJob">Work</mat-checkbox>
-                    <mat-checkbox formControlName="seekingInternship">Internship</mat-checkbox>
+                    <mat-checkbox formControlName="seekingJob">{{ 'Work' | t }}</mat-checkbox>
+                    <mat-checkbox formControlName="seekingInternship">{{ 'Internship' | t }}</mat-checkbox>
                   </div>
                 </div>
 
                 <button mat-flat-button color="primary" type="submit" [disabled]="profileForm.invalid || isSaving">
                   <mat-icon aria-hidden="true">save</mat-icon>
-                  Save Profile
+                  {{ 'Save Profile' | t }}
                 </button>
               </form>
 
               <div class="cv">
-                <div class="section-hd">Profile Photo</div>
+                <div class="section-hd">{{ 'Profile Photo' | t }}</div>
                 <div class="photo-row" *ngIf="student.profileImageUrl">
-                  <img [src]="profileImageHref(student.profileImageUrl)" [alt]="student.name + ' profile photo'" class="photo-preview" />
+                  <img [src]="profileImageHref(student.profileImageUrl)" [alt]="'Profile photo for {name}' | t: {name: student.name}" class="photo-preview" />
                 </div>
                 <div class="cv-upload">
                   <input
@@ -102,14 +102,14 @@
                     [disabled]="isSaving"
                   />
                 </div>
-                <div class="cv-hint">Allowed: JPG, PNG, WEBP. Max 5MB.</div>
+                <div class="cv-hint">{{ 'Allowed: JPG, PNG, WEBP. Max 5MB.' | t }}</div>
               </div>
 
               <div class="cv">
-                <div class="section-hd">CV</div>
+                <div class="section-hd">{{ 'CV' | t }}</div>
                 <div class="cv-row" *ngIf="student.cvUrl">
                   <mat-icon aria-hidden="true">description</mat-icon>
-                  <a [href]="cvHref(student.cvUrl)" target="_blank" rel="noreferrer">View current CV</a>
+                  <a [href]="cvHref(student.cvUrl)" target="_blank" rel="noreferrer">{{ 'View current CV' | t }}</a>
                 </div>
                 <div class="cv-upload">
                   <input
@@ -120,13 +120,13 @@
                     [disabled]="isSaving"
                   />
                 </div>
-                <div class="cv-hint">Allowed: PDF, DOC, DOCX. Max 10MB.</div>
+                <div class="cv-hint">{{ 'Allowed: PDF, DOC, DOCX. Max 10MB.' | t }}</div>
               </div>
             </div>
 
             <div class="section">
-              <div class="section-hd">Skills</div>
-              <mat-chip-set aria-label="Skill experience">
+              <div class="section-hd">{{ 'Skills' | t }}</div>
+              <mat-chip-set [attr.aria-label]="'Skills' | t">
                 <mat-chip
                   *ngFor="let s of student.skills; trackBy: trackSkill"
                   class="skill-chip"
@@ -135,8 +135,8 @@
                   (removed)="removeSkill(s.skillName)"
                 >
                   <span class="skill-name">{{ s.skillName }}</span>
-                  <span class="skill-years">{{ s.yearsOfExperience }} years</span>
-                  <button matChipRemove type="button" aria-label="Remove skill">
+                  <span class="skill-years">{{ '{years} years' | t: {years: s.yearsOfExperience} }}</span>
+                  <button matChipRemove type="button" [attr.aria-label]="'Remove skill' | t">
                     <mat-icon aria-hidden="true">cancel</mat-icon>
                   </button>
                 </mat-chip>
@@ -144,33 +144,33 @@
 
               <form class="add-skill" [formGroup]="addSkillForm" (ngSubmit)="addSkill()">
                 <mat-form-field appearance="outline">
-                  <mat-label>Add Skill</mat-label>
+                  <mat-label>{{ 'Add Skill' | t }}</mat-label>
                   <mat-select formControlName="skillName">
                     <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
                   </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Years</mat-label>
+                  <mat-label>{{ 'Years' | t }}</mat-label>
                   <input matInput type="number" min="0" max="50" formControlName="yearsOfExperience" />
-                  <mat-hint>Adding the same skill updates the value.</mat-hint>
+                  <mat-hint>{{ 'Adding the same skill updates the value.' | t }}</mat-hint>
                 </mat-form-field>
 
                 <button mat-flat-button color="primary" type="submit" [disabled]="addSkillForm.invalid || isSaving">
                   <mat-icon aria-hidden="true">add</mat-icon>
-                  Add / Update
+                  {{ 'Add / Update' | t }}
                 </button>
               </form>
             </div>
           </div>
 
           <div class="bio" *ngIf="student.bio">
-            <div class="section-hd">Bio</div>
+            <div class="section-hd">{{ 'Bio' | t }}</div>
             <p class="bio-txt">{{ student.bio }}</p>
           </div>
 
           <div class="bio ai-report" *ngIf="evaluation$ | async as evaluation">
-            <div class="section-hd">AI GitHub Evaluation</div>
+            <div class="section-hd">{{ 'AI GitHub Evaluation' | t }}</div>
             <div class="eval-top">
               <span class="eval-pill" [ngClass]="'st-' + (evaluation?.status ?? 'none')">
                 {{ evaluationStatusLabel(evaluation) }}
@@ -185,12 +185,12 @@
                   <mat-icon aria-hidden="true">auto_awesome</mat-icon>
                   {{ evaluationActionLabel(evaluation) }}
                 </button>
-                <span class="eval-date">Last analyzed: {{ formatIsoDate(evaluation?.lastAnalyzedAt ?? null) }}</span>
+                <span class="eval-date">{{ 'Last analyzed: {date}' | t: {date: formatIsoDate(evaluation?.lastAnalyzedAt ?? null)} }}</span>
               </div>
             </div>
 
             <div class="eval-hint" *ngIf="!student.contact.githubUrl">
-              Add your GitHub URL in Profile and click <strong>Save Profile</strong> to enable AI summary.
+              {{ 'Add your GitHub URL in Profile and click Save Profile to enable AI summary.' | t }}
             </div>
 
             <div class="eval-error" *ngIf="evaluation?.lastError">{{ evaluation?.lastError }}</div>
@@ -199,32 +199,32 @@
 
             <div class="eval-scores" *ngIf="evaluation?.scores?.overall !== null">
               <div class="score">
-                <div class="k">Overall</div>
+                <div class="k">{{ 'Overall' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.overall }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Code Quality</div>
+                <div class="k">{{ 'Code Quality' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.codeQuality }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Consistency</div>
+                <div class="k">{{ 'Consistency' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.consistency }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Activity</div>
+                <div class="k">{{ 'Activity' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.activity }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Documentation</div>
+                <div class="k">{{ 'Documentation' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.documentation }}/100</div>
               </div>
             </div>
 
             <div class="eval-metrics" *ngIf="evaluation?.metrics as m">
-              <div><strong>Commits ({{ m.commitWindowDays }}d):</strong> {{ m.commitCount }}</div>
-              <div><strong>Active weeks:</strong> {{ m.activeWeeks }}</div>
-              <div><strong>Avg per week:</strong> {{ m.averageCommitsPerWeek }}</div>
-              <div><strong>Activity spread:</strong> {{ asPercent(m.activitySpread) }}</div>
+              <div><strong>{{ 'Commits ({days}d):' | t: {days: m.commitWindowDays} }}</strong> {{ m.commitCount }}</div>
+              <div><strong>{{ 'Active weeks:' | t }}</strong> {{ m.activeWeeks }}</div>
+              <div><strong>{{ 'Avg per week:' | t }}</strong> {{ m.averageCommitsPerWeek }}</div>
+              <div><strong>{{ 'Activity spread:' | t }}</strong> {{ asPercent(m.activitySpread) }}</div>
             </div>
           </div>
         </mat-card-content>
@@ -235,15 +235,15 @@
   <ng-template #loading>
     <div class="state">
       <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-      <div class="state-txt">Loading profile…</div>
+      <div class="state-txt">{{ 'Loading profile…' | t }}</div>
     </div>
   </ng-template>
 
   <ng-template #missing>
     <div class="state">
       <mat-icon class="state-ic" aria-hidden="true">person_off</mat-icon>
-      <div class="state-txt">No student selected. Return to login and pick a profile.</div>
-      <button mat-flat-button color="primary" routerLink="/login">Go to Login</button>
+      <div class="state-txt">{{ 'No student selected. Return to login and pick a profile.' | t }}</div>
+      <button mat-flat-button color="primary" routerLink="/login">{{ 'Go to Login' | t }}</button>
     </div>
   </ng-template>
 </div>

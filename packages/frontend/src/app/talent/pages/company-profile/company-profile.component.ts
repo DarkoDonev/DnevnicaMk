@@ -2,6 +2,7 @@ import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {CompanyProfileService} from '../../services/company-profile.service';
 import {environment} from '../../../../environments/environment';
 
@@ -24,12 +25,13 @@ export class CompanyProfileComponent {
   constructor(
     private readonly companyProfile: CompanyProfileService,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   statusLabel(status: 'pending' | 'approved' | 'rejected'): string {
-    if (status === 'approved') return 'Approved';
-    if (status === 'rejected') return 'Rejected';
-    return 'Pending';
+    if (status === 'approved') return this.i18n.t('Approved');
+    if (status === 'rejected') return this.i18n.t('Rejected');
+    return this.i18n.t('Pending');
   }
 
   initialsFor(name: string): string {
@@ -54,14 +56,14 @@ export class CompanyProfileComponent {
     this.isSaving = true;
     this.companyProfile.uploadProfileImage(file).subscribe({
       next: () => {
-        this.snackBar.open('Company photo uploaded.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Company photo uploaded.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.isSaving = false;
         input.value = '';
         this.reload$.next();
       },
       error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not upload company photo.';
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = err instanceof Error ? err.message : this.i18n.t('Could not upload company photo.');
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.isSaving = false;
       },
     });

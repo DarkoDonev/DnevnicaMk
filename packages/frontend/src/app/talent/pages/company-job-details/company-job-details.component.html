@@ -2,14 +2,14 @@
   <header class="page-hd" *ngIf="vm$ | async as vm">
     <a mat-button routerLink="/company/jobs">
       <mat-icon aria-hidden="true">arrow_back</mat-icon>
-      Back to Jobs
+      {{ 'Back to Jobs' | t }}
     </a>
 
     <div *ngIf="vm" class="hd-main">
-      <div class="eyebrow">Company</div>
+      <div class="eyebrow">{{ 'Company' | t }}</div>
       <h1 class="title">{{ vm.details.job.title }}</h1>
       <p class="subtitle">
-        {{ vm.details.job.location }} • {{ vm.details.job.workMode }} • {{ listingTypeLabel(vm.details.job) }}
+        {{ vm.details.job.location }} • {{ workModeLabel(vm.details.job.workMode) }} • {{ listingTypeLabel(vm.details.job) }}
       </p>
     </div>
   </header>
@@ -18,8 +18,8 @@
     <ng-container *ngIf="vm; else failed">
       <mat-card class="summary" appearance="outlined">
         <mat-card-header>
-          <mat-card-title>Job Summary</mat-card-title>
-          <mat-card-subtitle>Detailed view for this posting</mat-card-subtitle>
+          <mat-card-title>{{ 'Job Summary' | t }}</mat-card-title>
+          <mat-card-subtitle>{{ 'Detailed view for this posting' | t }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -27,24 +27,24 @@
 
           <div class="stats">
             <div class="stat-box">
-              <div class="stat-label">Applications</div>
+              <div class="stat-label">{{ 'Applications' | t }}</div>
               <div class="stat-value">{{ vm.details.job.stats?.applicationsCount ?? vm.details.applications.length }}</div>
             </div>
             <div class="stat-box">
-              <div class="stat-label">Invited</div>
+              <div class="stat-label">{{ 'Invited' | t }}</div>
               <div class="stat-value">{{ vm.details.job.stats?.invitedCount ?? 0 }}</div>
             </div>
             <div class="stat-box">
-              <div class="stat-label">Potential</div>
+              <div class="stat-label">{{ 'Potential' | t }}</div>
               <div class="stat-value">{{ vm.details.job.stats?.potentialCount ?? vm.potentialStudents.length }}</div>
             </div>
           </div>
 
           <div class="requirements">
-            <div class="req-title">Required Skills</div>
+            <div class="req-title">{{ 'Required Skills' | t }}</div>
             <mat-chip-set>
               <mat-chip *ngFor="let requirement of vm.details.job.requirements; trackBy: trackRequirement">
-                {{ requirement.skillName }} • {{ requirement.minYears }}y+
+                {{ requirement.skillName }} • {{ '{years}y+' | t: {years: requirement.minYears} }}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -53,8 +53,8 @@
 
       <section class="section">
         <div class="section-hd">
-          <h2>Applicants</h2>
-          <div class="section-sub">{{ vm.details.applications.length }} total</div>
+          <h2>{{ 'Applicants' | t }}</h2>
+          <div class="section-sub">{{ '{count} total' | t: {count: vm.details.applications.length} }}</div>
         </div>
 
         <div class="apps-list" *ngIf="vm.details.applications.length > 0; else noApplicants">
@@ -62,24 +62,24 @@
             <mat-card-content>
               <div class="app-head">
                 <div>
-                  <div class="app-name">{{ app.student?.name || 'Applicant' }}</div>
+                  <div class="app-name">{{ app.student?.name || ('Applicant' | t) }}</div>
                   <div class="app-email">{{ app.student?.email || '' }}</div>
                   <div class="app-meta" *ngIf="app.student?.headline">{{ app.student?.headline }}</div>
                   <div class="ai-score" *ngIf="app.student?.aiEvaluationPreview?.overallScore !== null && app.student?.aiEvaluationPreview?.overallScore !== undefined">
-                    AI Score: {{ app.student?.aiEvaluationPreview?.overallScore }}/100
+                    {{ 'AI Score:' | t }} {{ app.student?.aiEvaluationPreview?.overallScore }}/100
                   </div>
                   <div class="ai-summary" *ngIf="app.student?.aiEvaluationPreview?.summarySnippet">
                     {{ app.student?.aiEvaluationPreview?.summarySnippet }}
                   </div>
                   <div class="ai-summary ai-summary-empty" *ngIf="!app.student?.aiEvaluationPreview?.summarySnippet">
-                    No AI summary yet. Generate one for this applicant.
+                    {{ 'No AI summary yet. Generate one for this applicant.' | t }}
                   </div>
                 </div>
 
                 <span class="status-pill" [ngClass]="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
               </div>
 
-              <div class="app-updated">Updated {{ app.updatedAtIso | date: 'MMM d, y, HH:mm' }}</div>
+              <div class="app-updated">{{ 'Updated' | t }} {{ app.updatedAtIso | l10nDate: 'MMM d, y, HH:mm' }}</div>
 
               <div class="profile-actions" *ngIf="app.student?.id">
                 <button
@@ -93,15 +93,15 @@
                 </button>
                 <a mat-stroked-button [routerLink]="['/company/ai-evaluation', app.student?.id]">
                   <mat-icon aria-hidden="true">person</mat-icon>
-                  Open Account
+                  {{ 'Open Account' | t }}
                 </a>
               </div>
 
               <div class="interview-details" *ngIf="app.status === 'HR_INTERVIEW' && app.hrInterview">
-                <div class="interview-title">HR Interview Scheduled</div>
-                <div class="interview-line"><strong>Time:</strong> {{ app.hrInterview.atIso | date: 'MMM d, y, HH:mm' }}</div>
-                <div class="interview-line"><strong>Location:</strong> {{ app.hrInterview.location }}</div>
-                <div class="interview-line" *ngIf="app.hrInterview.info"><strong>Info:</strong> {{ app.hrInterview.info }}</div>
+                <div class="interview-title">{{ 'HR Interview Scheduled' | t }}</div>
+                <div class="interview-line"><strong>{{ 'Time:' | t }}</strong> {{ app.hrInterview.atIso | l10nDate: 'MMM d, y, HH:mm' }}</div>
+                <div class="interview-line"><strong>{{ 'Location:' | t }}</strong> {{ app.hrInterview.location }}</div>
+                <div class="interview-line" *ngIf="app.hrInterview.info"><strong>{{ 'Info:' | t }}</strong> {{ app.hrInterview.info }}</div>
               </div>
 
               <div class="app-actions" *ngIf="getActionsForStatus(app.status).length > 0">
@@ -115,12 +115,12 @@
                 >
                   <mat-icon aria-hidden="true" *ngIf="action.status === 'REJECTED'">block</mat-icon>
                   <mat-icon aria-hidden="true" *ngIf="action.status !== 'REJECTED'">arrow_forward</mat-icon>
-                  {{ action.label }}
+                  {{ actionLabel(action) }}
                 </button>
               </div>
 
               <div class="app-reason" *ngIf="app.status === 'REJECTED' && app.rejectionReason">
-                <div class="reason-hd">Reason</div>
+                <div class="reason-hd">{{ 'Reason' | t }}</div>
                 <div class="reason-text">{{ app.rejectionReason }}</div>
               </div>
             </mat-card-content>
@@ -130,15 +130,15 @@
         <ng-template #noApplicants>
           <div class="state">
             <mat-icon aria-hidden="true">person_search</mat-icon>
-            <span>No applicants for this job yet.</span>
+            <span>{{ 'No applicants for this job yet.' | t }}</span>
           </div>
         </ng-template>
       </section>
 
       <section class="section">
         <div class="section-hd">
-          <h2>Potential Matches</h2>
-          <div class="section-sub">{{ vm.potentialStudents.length }} available</div>
+          <h2>{{ 'Potential Matches' | t }}</h2>
+          <div class="section-sub">{{ '{count} available' | t: {count: vm.potentialStudents.length} }}</div>
         </div>
 
         <div class="potential-list" *ngIf="vm.potentialStudents.length > 0; else noPotential">
@@ -148,7 +148,7 @@
                 <div>
                   <div class="student-name">{{ student.name }}</div>
                   <div class="student-email">{{ student.email }}</div>
-                  <div class="student-meta">{{ student.location }} • Looking for: {{ seekingLabel(student) }}</div>
+                  <div class="student-meta">{{ student.location }} • {{ 'Looking for:' | t }} {{ seekingLabel(student) }}</div>
                 </div>
 
                 <button
@@ -159,13 +159,13 @@
                   (click)="sendRequest(vm.jobId, student.id)"
                 >
                   <mat-icon aria-hidden="true">send</mat-icon>
-                  Send Request
+                  {{ 'Send Request' | t }}
                 </button>
               </div>
 
               <p class="student-headline" *ngIf="student.headline">{{ student.headline }}</p>
               <div class="ai-score" *ngIf="student.aiEvaluationPreview?.overallScore !== null && student.aiEvaluationPreview?.overallScore !== undefined">
-                AI Score: {{ student.aiEvaluationPreview?.overallScore }}/100
+                {{ 'AI Score:' | t }} {{ student.aiEvaluationPreview?.overallScore }}/100
               </div>
               <div class="ai-summary" *ngIf="student.aiEvaluationPreview?.summarySnippet">
                 {{ student.aiEvaluationPreview?.summarySnippet }}
@@ -173,7 +173,7 @@
 
               <mat-chip-set>
                 <mat-chip *ngFor="let skill of student.skills; trackBy: trackSkill">
-                  {{ skill.skillName }} • {{ skill.yearsOfExperience }}y
+                  {{ skill.skillName }} • {{ '{years}y' | t: {years: skill.yearsOfExperience} }}
                 </mat-chip>
               </mat-chip-set>
             </mat-card-content>
@@ -183,7 +183,7 @@
         <ng-template #noPotential>
           <div class="state">
             <mat-icon aria-hidden="true">group_off</mat-icon>
-            <span>No unmatched potential students for this job right now.</span>
+            <span>{{ 'No unmatched potential students for this job right now.' | t }}</span>
           </div>
         </ng-template>
       </section>
@@ -193,14 +193,14 @@
   <ng-template #loading>
     <div class="state">
       <mat-progress-spinner mode="indeterminate" diameter="34"></mat-progress-spinner>
-      <span>Loading job details...</span>
+      <span>{{ 'Loading job details...' | t }}</span>
     </div>
   </ng-template>
 
   <ng-template #failed>
     <div class="state">
       <mat-icon aria-hidden="true">error_outline</mat-icon>
-      <span>Could not load this job details page.</span>
+      <span>{{ 'Could not load this job details page.' | t }}</span>
     </div>
   </ng-template>
 </div>

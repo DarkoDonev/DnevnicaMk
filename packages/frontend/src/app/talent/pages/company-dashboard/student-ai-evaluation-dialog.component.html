@@ -1,59 +1,59 @@
-<h2 mat-dialog-title>AI Evaluation: {{ data.studentName }}</h2>
+<h2 mat-dialog-title>{{ 'AI Evaluation: {studentName}' | t: {studentName: data.studentName} }}</h2>
 
 <mat-dialog-content class="dialog-body">
   <div class="status-row">
     <span class="status-pill" [ngClass]="'st-' + data.evaluation.status">{{ statusLabel }}</span>
-    <span class="date-txt">Last analyzed: {{ formatDate(data.evaluation.lastAnalyzedAt) }}</span>
+    <span class="date-txt">{{ 'Last analyzed: {date}' | t: {date: formatDate(data.evaluation.lastAnalyzedAt)} }}</span>
   </div>
 
   <div class="error-box" *ngIf="data.evaluation.lastError">{{ data.evaluation.lastError }}</div>
 
   <section class="section" *ngIf="data.evaluation.summaryMk">
-    <div class="section-title">Summary</div>
+    <div class="section-title">{{ 'Summary' | t }}</div>
     <p class="summary">{{ data.evaluation.summaryMk }}</p>
   </section>
 
   <section class="section" *ngIf="data.evaluation.scores.overall !== null">
-    <div class="section-title">Scores</div>
+    <div class="section-title">{{ 'Scores' | t }}</div>
     <div class="scores-grid">
       <div class="score-item">
-        <div class="score-k">Overall</div>
+        <div class="score-k">{{ 'Overall' | t }}</div>
         <div class="score-v">{{ data.evaluation.scores.overall }}/100</div>
       </div>
       <div class="score-item">
-        <div class="score-k">Code Quality</div>
+        <div class="score-k">{{ 'Code Quality' | t }}</div>
         <div class="score-v">{{ data.evaluation.scores.codeQuality }}/100</div>
       </div>
       <div class="score-item">
-        <div class="score-k">Consistency</div>
+        <div class="score-k">{{ 'Consistency' | t }}</div>
         <div class="score-v">{{ data.evaluation.scores.consistency }}/100</div>
       </div>
       <div class="score-item">
-        <div class="score-k">Activity</div>
+        <div class="score-k">{{ 'Activity' | t }}</div>
         <div class="score-v">{{ data.evaluation.scores.activity }}/100</div>
       </div>
       <div class="score-item">
-        <div class="score-k">Documentation</div>
+        <div class="score-k">{{ 'Documentation' | t }}</div>
         <div class="score-v">{{ data.evaluation.scores.documentation }}/100</div>
       </div>
     </div>
   </section>
 
   <section class="section" *ngIf="data.evaluation.metrics as metrics">
-    <div class="section-title">Metrics ({{ metrics.commitWindowDays }} days)</div>
+    <div class="section-title">{{ 'Metrics ({days} days)' | t: {days: metrics.commitWindowDays} }}</div>
     <div class="metrics-grid">
-      <div><strong>Commits:</strong> {{ metrics.commitCount }}</div>
-      <div><strong>Active weeks:</strong> {{ metrics.activeWeeks }}</div>
-      <div><strong>Avg / week:</strong> {{ metrics.averageCommitsPerWeek }}</div>
-      <div><strong>Repos analyzed:</strong> {{ metrics.repositoriesAnalyzed }}</div>
-      <div><strong>Active repos:</strong> {{ metrics.repositoriesWithRecentCommits }}</div>
-      <div><strong>Activity spread:</strong> {{ formatPercent(metrics.activitySpread) }}</div>
-      <div><strong>README coverage:</strong> {{ formatPercent(metrics.readmeCoverage) }}</div>
-      <div><strong>Test coverage:</strong> {{ formatPercent(metrics.testCoverage) }}</div>
+      <div><strong>{{ 'Commits:' | t }}</strong> {{ metrics.commitCount }}</div>
+      <div><strong>{{ 'Active weeks:' | t }}</strong> {{ metrics.activeWeeks }}</div>
+      <div><strong>{{ 'Avg / week:' | t }}</strong> {{ metrics.averageCommitsPerWeek }}</div>
+      <div><strong>{{ 'Repos analyzed:' | t }}</strong> {{ metrics.repositoriesAnalyzed }}</div>
+      <div><strong>{{ 'Active repos:' | t }}</strong> {{ metrics.repositoriesWithRecentCommits }}</div>
+      <div><strong>{{ 'Activity spread:' | t }}</strong> {{ formatPercent(metrics.activitySpread) }}</div>
+      <div><strong>{{ 'README coverage:' | t }}</strong> {{ formatPercent(metrics.readmeCoverage) }}</div>
+      <div><strong>{{ 'Test coverage:' | t }}</strong> {{ formatPercent(metrics.testCoverage) }}</div>
     </div>
 
     <div class="lang-row" *ngIf="metrics.languageMix.length > 0">
-      <div class="lang-title">Language mix</div>
+      <div class="lang-title">{{ 'Language mix' | t }}</div>
       <div class="lang-list">
         <span class="lang-pill" *ngFor="let lang of metrics.languageMix">{{ lang.language }} ({{ lang.percentage }}%)</span>
       </div>
@@ -61,30 +61,30 @@
   </section>
 
   <section class="section" *ngIf="data.evaluation.reposAnalyzed.length > 0">
-    <div class="section-title">Repositories</div>
+    <div class="section-title">{{ 'Repositories' | t }}</div>
     <div class="repo-list">
       <div class="repo-item" *ngFor="let repo of data.evaluation.reposAnalyzed">
         <a [href]="repo.htmlUrl" target="_blank" rel="noreferrer">{{ repo.fullName }}</a>
         <div class="repo-meta">
-          <span>{{ repo.primaryLanguage || 'N/A' }}</span>
-          <span>Commits: {{ repo.commitsInWindow }}</span>
-          <span>Stars: {{ repo.stars }}</span>
-          <span>README: {{ repo.hasReadme ? 'Yes' : 'No' }}</span>
-          <span>Tests: {{ repo.hasTests ? 'Yes' : 'No' }}</span>
+          <span>{{ repo.primaryLanguage || ('N/A' | t) }}</span>
+          <span>{{ 'Commits:' | t }} {{ repo.commitsInWindow }}</span>
+          <span>{{ 'Stars:' | t }} {{ repo.stars }}</span>
+          <span>{{ 'README:' | t }} {{ repo.hasReadme ? ('Yes' | t) : ('No' | t) }}</span>
+          <span>{{ 'Tests:' | t }} {{ repo.hasTests ? ('Yes' | t) : ('No' | t) }}</span>
         </div>
       </div>
     </div>
   </section>
 
   <section class="section" *ngIf="data.evaluation.strengths.length > 0">
-    <div class="section-title">Strengths</div>
+    <div class="section-title">{{ 'Strengths' | t }}</div>
     <ul class="plain-list">
       <li *ngFor="let item of data.evaluation.strengths">{{ item }}</li>
     </ul>
   </section>
 
   <section class="section" *ngIf="data.evaluation.improvements.length > 0">
-    <div class="section-title">Improvements</div>
+    <div class="section-title">{{ 'Improvements' | t }}</div>
     <ul class="plain-list">
       <li *ngFor="let item of data.evaluation.improvements">{{ item }}</li>
     </ul>
@@ -92,5 +92,5 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Close</button>
+  <button mat-button mat-dialog-close>{{ 'Close' | t }}</button>
 </mat-dialog-actions>

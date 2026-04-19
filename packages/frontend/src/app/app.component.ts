@@ -1,9 +1,11 @@
 import {HttpErrorResponse} from '@angular/common/http';
-import {Component} from '@angular/core';
-import {MAT_DATE_FORMATS} from '@angular/material/core';
+import {Component, OnDestroy} from '@angular/core';
+import {DateAdapter, MAT_DATE_FORMATS} from '@angular/material/core';
 import {Router} from '@angular/router';
-import {catchError, map, merge, Observable, of, shareReplay, startWith, Subject, switchMap, timer} from 'rxjs';
+import {catchError, map, merge, Observable, of, shareReplay, startWith, Subject, Subscription, switchMap, timer} from 'rxjs';
 
+import {LocalizationService} from './i18n/localization.service';
+import {LanguageCode} from './i18n/translations';
 import {NotificationItem} from './talent/models';
 import {AuthService, UserRole} from './talent/services/auth.service';
 import {NotificationsService} from './talent/services/notifications.service';
@@ -32,10 +34,12 @@ export const MY_DATE_FORMATS = {
     {provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS}
   ]
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private readonly notificationsMenuOpened$ = new Subject<void>();
+  private readonly languageSubscription: Subscription;
 
   readonly authState$ = this.auth.authState$;
+  readonly language$ = this.i18n.language$;
   readonly notificationsState$ = this.authState$.pipe(
     switchMap((auth) => {
       if (!this.isNotificationsEnabled(auth.role)) {
@@ -51,7 +55,7 @@ export class AppComponent {
               of({
                 status: 'error' as const,
                 data: [],
-                errorMessage: this.toErrorMessage(err, 'Could not load notifications.'),
+                errorMessage: this.toErrorMessage(err, this.i18n.t('Could not load notifications.')),
               }),
             ),
           ),
@@ -81,10 +85,25 @@ export class AppComponent {
     private readonly auth: AuthService,
     private readonly notifications: NotificationsService,
     private readonly router: Router,
-  ) {}
+    private readonly i18n: LocalizationService,
+    private readonly dateAdapter: DateAdapter<unknown>,
+  ) {
+    this.dateAdapter.setLocale(this.i18n.currentMaterialLocale);
+    this.languageSubscription = this.i18n.language$.subscribe(() => {
+      this.dateAdapter.setLocale(this.i18n.currentMaterialLocale);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.languageSubscription.unsubscribe();
+  }
 
   onNotificationsMenuOpened(): void {
     this.notificationsMenuOpened$.next();
+  }
+
+  setLanguage(language: LanguageCode): void {
+    this.i18n.setLanguage(language);
   }
 
   openNotification(notification: NotificationItem, role: UserRole | null): void {
@@ -126,10 +145,10 @@ export class AppComponent {
   }
 
   roleLabel(role: UserRole | null): string {
-    if (role === 'company') return 'Company';
-    if (role === 'student') return 'Student';
-    if (role === 'admin') return 'Admin';
-    return 'User';
+    if (role === 'company') return this.i18n.t('Company');
+    if (role === 'student') return this.i18n.t('Student');
+    if (role === 'admin') return this.i18n.t('Admin');
+    return this.i18n.t('User');
   }
 
   private refreshTicks(role: UserRole | null): Observable<unknown> {

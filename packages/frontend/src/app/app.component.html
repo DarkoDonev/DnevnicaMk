@@ -1,30 +1,59 @@
 <div class="app-shell">
   <mat-toolbar class="app-toolbar" color="primary">
     <ng-container *ngIf="authState$ | async as auth">
-      <div class="brand" [routerLink]="homeRoute(auth.role)" tabindex="0" role="link" aria-label="DnevnicaMK home">
+      <div
+        class="brand"
+        [routerLink]="homeRoute(auth.role)"
+        tabindex="0"
+        role="link"
+        [attr.aria-label]="'DnevnicaMK home' | t"
+      >
         <span class="brand-mark" aria-hidden="true"></span>
         <span class="brand-name">DnevnicaMK</span>
       </div>
 
-      <nav class="nav" *ngIf="auth.role" aria-label="Primary navigation">
+      <nav class="nav" *ngIf="auth.role" [attr.aria-label]="'Primary navigation' | t">
         <ng-container [ngSwitch]="auth.role">
           <ng-container *ngSwitchCase="'company'">
-            <a mat-button routerLink="/company/ai-evaluation" routerLinkActive="active">AI Evaluation</a>
-            <a mat-button routerLink="/company/jobs" routerLinkActive="active">Post Jobs</a>
-            <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
+            <a mat-button routerLink="/company/ai-evaluation" routerLinkActive="active">{{ 'AI Evaluation' | t }}</a>
+            <a mat-button routerLink="/company/jobs" routerLinkActive="active">{{ 'Post Jobs' | t }}</a>
+            <a mat-button routerLink="/events" routerLinkActive="active">{{ 'Events' | t }}</a>
           </ng-container>
           <ng-container *ngSwitchCase="'student'">
-            <a mat-button routerLink="/student/jobs" routerLinkActive="active">Jobs</a>
-            <a mat-button routerLink="/student/applications" routerLinkActive="active">Applications</a>
-            <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
+            <a mat-button routerLink="/student/jobs" routerLinkActive="active">{{ 'Jobs' | t }}</a>
+            <a mat-button routerLink="/student/applications" routerLinkActive="active">{{ 'Applications' | t }}</a>
+            <a mat-button routerLink="/events" routerLinkActive="active">{{ 'Events' | t }}</a>
           </ng-container>
           <ng-container *ngSwitchCase="'admin'">
-            <a mat-button routerLink="/admin/company-approvals" routerLinkActive="active">Company Approvals</a>
+            <a mat-button routerLink="/admin/company-approvals" routerLinkActive="active">{{ 'Company Approvals' | t }}</a>
           </ng-container>
         </ng-container>
       </nav>
 
       <span class="spacer"></span>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="language-trigger"
+        [matMenuTriggerFor]="languageMenu"
+        [attr.aria-label]="'Language' | t"
+      >
+        <mat-icon aria-hidden="true">translate</mat-icon>
+      </button>
+
+      <mat-menu #languageMenu="matMenu" xPosition="before">
+        <ng-container *ngIf="language$ | async as language">
+          <button mat-menu-item type="button" (click)="setLanguage('mk')" [disabled]="language === 'mk'">
+            <mat-icon aria-hidden="true">{{ language === 'mk' ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ 'Macedonian' | t }}</span>
+          </button>
+          <button mat-menu-item type="button" (click)="setLanguage('en')" [disabled]="language === 'en'">
+            <mat-icon aria-hidden="true">{{ language === 'en' ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ 'English' | t }}</span>
+          </button>
+        </ng-container>
+      </mat-menu>
 
       <button
         mat-icon-button
@@ -36,7 +65,7 @@
         [matBadgeHidden]="((unreadCount$ | async) ?? 0) === 0"
         matBadgeColor="warn"
         matBadgeSize="small"
-        aria-label="Open notifications"
+        [attr.aria-label]="'Open notifications' | t"
         (menuOpened)="onNotificationsMenuOpened()"
       >
         <mat-icon aria-hidden="true">notifications</mat-icon>
@@ -47,21 +76,21 @@
           <ng-container *ngIf="state.status === 'loading'">
             <div class="notifications-state">
               <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-              <span>Loading notifications...</span>
+              <span>{{ 'Loading notifications...' | t }}</span>
             </div>
           </ng-container>
 
           <ng-container *ngIf="state.status === 'error'">
             <div class="notifications-state error">
               <mat-icon aria-hidden="true">error_outline</mat-icon>
-              <span>{{ state.errorMessage ?? 'Could not load notifications.' }}</span>
+              <span>{{ state.errorMessage ?? ('Could not load notifications.' | t) }}</span>
             </div>
           </ng-container>
 
           <ng-container *ngIf="state.status === 'ready' && state.data.length === 0">
             <div class="notifications-state">
               <mat-icon aria-hidden="true">notifications_none</mat-icon>
-              <span>No notifications yet.</span>
+              <span>{{ 'No notifications yet.' | t }}</span>
             </div>
           </ng-container>
 
@@ -80,7 +109,7 @@
                   <span class="notification-unread-dot" *ngIf="!notification.isRead" aria-hidden="true"></span>
                 </div>
                 <span class="notification-message">{{ notification.message }}</span>
-                <span class="notification-time">{{ notification.createdAtIso | date: 'dd MMM, HH:mm' }}</span>
+                <span class="notification-time">{{ notification.createdAtIso | l10nDate: 'dd MMM, HH:mm' }}</span>
               </div>
             </button>
           </ng-container>
@@ -96,7 +125,7 @@
         [routerLinkActiveOptions]="{exact: true}"
       >
         <mat-icon aria-hidden="true">{{ auth.role === 'company' ? 'apartment' : 'school' }}</mat-icon>
-        <span>{{ auth.role === 'company' ? (auth.companyName ?? auth.email ?? 'Company') : (auth.studentName ?? auth.email ?? 'Student') }}</span>
+        <span>{{ auth.role === 'company' ? (auth.companyName ?? auth.email ?? ('Company' | t)) : (auth.studentName ?? auth.email ?? ('Student' | t)) }}</span>
       </a>
 
       <span class="who" *ngIf="(auth.role === 'company' || auth.role === 'admin') && auth.email">
@@ -108,7 +137,7 @@
         <span>{{ roleLabel(auth.role) }}</span>
       </span>
 
-      <button mat-button type="button" *ngIf="auth.role" (click)="logout()">Logout</button>
+      <button mat-button type="button" *ngIf="auth.role" (click)="logout()">{{ 'Logout' | t }}</button>
     </ng-container>
   </mat-toolbar>
 

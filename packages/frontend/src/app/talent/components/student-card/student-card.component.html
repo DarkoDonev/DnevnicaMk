@@ -4,7 +4,7 @@
       <img
         *ngIf="student.profileImageUrl; else studentInitials"
         [src]="profileImageHref(student.profileImageUrl)"
-        [alt]="student.name + ' profile photo'"
+        [alt]="'Profile photo for {name}' | t: {name: student.name}"
         class="avatar-img"
       />
       <ng-template #studentInitials>{{ initials }}</ng-template>
@@ -25,42 +25,42 @@
       </div>
       <div class="meta-row">
         <mat-icon class="meta-ic" aria-hidden="true">work</mat-icon>
-        <span class="meta-txt">Looking for: {{ seekingLabel }}</span>
+        <span class="meta-txt">{{ 'Looking for:' | t }} {{ seekingLabel }}</span>
       </div>
     </div>
 
     <div class="skills">
-      <div class="skills-hd">Skills</div>
-      <mat-chip-set aria-label="Student skills">
+      <div class="skills-hd">{{ 'Skills' | t }}</div>
+      <mat-chip-set [attr.aria-label]="'Student skills' | t">
         <mat-chip *ngFor="let s of student.skills; trackBy: trackSkill" class="skill-chip">
           <span class="skill-name">{{ s.skillName }}</span>
-          <span class="skill-years">{{ s.yearsOfExperience }}y</span>
+          <span class="skill-years">{{ '{years}y' | t: {years: s.yearsOfExperience} }}</span>
         </mat-chip>
       </mat-chip-set>
     </div>
 
     <div class="ai">
       <div class="ai-head">
-        <div class="skills-hd">AI Evaluation</div>
+        <div class="skills-hd">{{ 'AI Evaluation' | t }}</div>
         <span class="ai-status" [ngClass]="'st-' + evaluationStatus">{{ evaluationStatusLabel }}</span>
       </div>
 
       <div class="ai-score" *ngIf="student.aiEvaluationPreview?.overallScore !== null && student.aiEvaluationPreview?.overallScore !== undefined">
-        Score:
+        {{ 'Score:' | t }}
         <strong>{{ student.aiEvaluationPreview?.overallScore }}/100</strong>
       </div>
 
       <div class="ai-summary">
-        {{ student.aiEvaluationPreview?.summarySnippet || 'No AI summary yet. Run analysis to generate one.' }}
+        {{ student.aiEvaluationPreview?.summarySnippet || ('No AI summary yet. Run analysis to generate one.' | t) }}
       </div>
 
       <div class="ai-actions" *ngIf="showEvaluationActions">
         <button mat-stroked-button type="button" (click)="requestAnalyze()" [disabled]="analyzeLoading">
           <mat-icon aria-hidden="true">{{ analyzeLoading ? 'hourglass_top' : 'analytics' }}</mat-icon>
-          {{ analyzeLoading ? 'Analyzing...' : 'Analyze' }}
+          {{ analyzeLoading ? ('Analyzing...' | t) : ('Analyze' | t) }}
         </button>
         <button mat-button type="button" (click)="requestDetails()" [disabled]="!canViewDetails || analyzeLoading">
-          View details
+          {{ 'View details' | t }}
         </button>
       </div>
     </div>

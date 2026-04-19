@@ -1,64 +1,64 @@
-<h2 mat-dialog-title>New Job Post</h2>
+<h2 mat-dialog-title>{{ 'New Job Post' | t }}</h2>
 
 <mat-dialog-content class="dialog-content">
   <form class="form" [formGroup]="form" autocomplete="off">
     <mat-form-field appearance="outline">
-      <mat-label>Title</mat-label>
-      <input matInput formControlName="title" placeholder="e.g. Junior Frontend Intern (Angular)" />
+      <mat-label>{{ 'Title' | t }}</mat-label>
+      <input matInput formControlName="title" [placeholder]="'e.g. Junior Frontend Intern (Angular)' | t" />
     </mat-form-field>
 
     <div class="two">
       <mat-form-field appearance="outline">
-        <mat-label>Location</mat-label>
-        <input matInput formControlName="location" placeholder="e.g. Skopje, MK or Remote" />
+        <mat-label>{{ 'Location' | t }}</mat-label>
+        <input matInput formControlName="location" [placeholder]="'e.g. Skopje, MK or Remote' | t" />
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Work Mode</mat-label>
+        <mat-label>{{ 'Work Mode' | t }}</mat-label>
         <mat-select formControlName="workMode">
-          <mat-option *ngFor="let m of workModes" [value]="m">{{ m }}</mat-option>
+          <mat-option *ngFor="let m of workModes" [value]="m">{{ workModeLabel(m) }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
 
     <div class="type-box">
-      <div class="type-hd">Listing Type</div>
+      <div class="type-hd">{{ 'Listing Type' | t }}</div>
       <div class="type-grid">
-        <mat-checkbox formControlName="isJob">Work</mat-checkbox>
-        <mat-checkbox formControlName="isInternship">Internship</mat-checkbox>
+        <mat-checkbox formControlName="isJob">{{ 'Work' | t }}</mat-checkbox>
+        <mat-checkbox formControlName="isInternship">{{ 'Internship' | t }}</mat-checkbox>
       </div>
     </div>
 
     <mat-form-field appearance="outline">
-      <mat-label>Description</mat-label>
+      <mat-label>{{ 'Description' | t }}</mat-label>
       <textarea
         matInput
         formControlName="description"
         rows="5"
-        placeholder="What will the student work on? What does success look like?"
+        [placeholder]="'What will the student work on? What does success look like?' | t"
       ></textarea>
     </mat-form-field>
 
     <div class="reqs" formArrayName="requirements">
       <div class="reqs-hd">
-        <div class="reqs-title">Required Skills</div>
+        <div class="reqs-title">{{ 'Required Skills' | t }}</div>
         <button mat-stroked-button type="button" (click)="addRequirement()">
           <mat-icon aria-hidden="true">add</mat-icon>
-          Add Skill
+          {{ 'Add Skill' | t }}
         </button>
       </div>
 
       <div class="reqs-list">
         <div class="req-row" *ngFor="let g of requirements.controls; let i = index" [formGroupName]="i">
           <mat-form-field appearance="outline">
-            <mat-label>Skill</mat-label>
+            <mat-label>{{ 'Skill' | t }}</mat-label>
             <mat-select formControlName="skillName">
               <mat-option *ngFor="let s of (skills$ | async) ?? []" [value]="s">{{ s }}</mat-option>
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Min Years</mat-label>
+            <mat-label>{{ 'Min Years' | t }}</mat-label>
             <input matInput type="number" min="0" max="50" formControlName="minYears" />
           </mat-form-field>
 
@@ -68,7 +68,7 @@
             class="rm"
             (click)="removeRequirement(i)"
             [disabled]="requirements.length <= 1"
-            aria-label="Remove requirement"
+            [attr.aria-label]="'Remove requirement' | t"
           >
             <mat-icon aria-hidden="true">close</mat-icon>
           </button>
@@ -78,16 +78,16 @@
   </form>
 
   <section class="preview" *ngIf="potentialPreview$ | async as preview">
-    <div class="preview-title">Potential matches</div>
+    <div class="preview-title">{{ 'Potential matches' | t }}</div>
 
     <div class="preview-line" *ngIf="preview.loading">
       <mat-progress-spinner mode="indeterminate" diameter="18"></mat-progress-spinner>
-      <span>Calculating...</span>
+      <span>{{ 'Calculating...' | t }}</span>
     </div>
 
     <div class="preview-line ok" *ngIf="!preview.loading && preview.count !== null">
       <mat-icon aria-hidden="true">groups</mat-icon>
-      <span>{{ preview.count }} students currently match this draft.</span>
+      <span>{{ '{count} students currently match this draft.' | t: {count: preview.count} }}</span>
     </div>
 
     <div class="preview-line err" *ngIf="!preview.loading && preview.errorMessage">
@@ -98,9 +98,9 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+  <button mat-button type="button" (click)="cancel()" [disabled]="isSubmitting">{{ 'Cancel' | t }}</button>
   <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="form.invalid || isSubmitting">
     <mat-icon aria-hidden="true">publish</mat-icon>
-    <span>{{ isSubmitting ? 'Posting...' : 'Post Job' }}</span>
+    <span>{{ isSubmitting ? ('Posting...' | t) : ('Post Job' | t) }}</span>
   </button>
 </mat-dialog-actions>

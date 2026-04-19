@@ -2,12 +2,12 @@
   <header class="page-hd">
     <a mat-button routerLink="/company/jobs">
       <mat-icon aria-hidden="true">arrow_back</mat-icon>
-      Back to Jobs
+      {{ 'Back to Jobs' | t }}
     </a>
 
     <div>
-      <div class="eyebrow">Company</div>
-      <h1 class="title">Student Account</h1>
+      <div class="eyebrow">{{ 'Company' | t }}</div>
+      <h1 class="title">{{ 'Student Account' | t }}</h1>
     </div>
   </header>
 
@@ -19,7 +19,7 @@
             <img
               *ngIf="student.profileImageUrl; else studentInitials"
               [src]="profileImageHref(student.profileImageUrl)"
-              [alt]="student.name + ' profile photo'"
+              [alt]="'Profile photo for {name}' | t: {name: student.name}"
               class="avatar-img"
             />
             <ng-template #studentInitials>{{ initialsFor(student.name) }}</ng-template>
@@ -31,19 +31,19 @@
         <mat-card-content>
           <div class="meta-grid">
             <div class="meta-item">
-              <div class="k">Email</div>
+              <div class="k">{{ 'Email' | t }}</div>
               <div class="v">{{ student.contact.email }}</div>
             </div>
             <div class="meta-item">
-              <div class="k">Phone</div>
-              <div class="v">{{ student.contact.phone || 'Not provided' }}</div>
+              <div class="k">{{ 'Phone' | t }}</div>
+              <div class="v">{{ student.contact.phone || ('Not provided' | t) }}</div>
             </div>
             <div class="meta-item">
-              <div class="k">Location</div>
-              <div class="v">{{ student.contact.location || 'Not provided' }}</div>
+              <div class="k">{{ 'Location' | t }}</div>
+              <div class="v">{{ student.contact.location || ('Not provided' | t) }}</div>
             </div>
             <div class="meta-item">
-              <div class="k">Looking for</div>
+              <div class="k">{{ 'Looking for:' | t }}</div>
               <div class="v">{{ seekingLabel(student) }}</div>
             </div>
           </div>
@@ -51,34 +51,34 @@
           <div class="links">
             <a mat-stroked-button *ngIf="student.contact.linkedInUrl" [href]="student.contact.linkedInUrl" target="_blank" rel="noreferrer">
               <mat-icon aria-hidden="true">open_in_new</mat-icon>
-              LinkedIn
+              {{ 'LinkedIn' | t }}
             </a>
             <a mat-stroked-button *ngIf="student.contact.githubUrl" [href]="student.contact.githubUrl" target="_blank" rel="noreferrer">
               <mat-icon aria-hidden="true">open_in_new</mat-icon>
-              GitHub
+              {{ 'GitHub' | t }}
             </a>
             <a mat-stroked-button *ngIf="student.cvUrl" [href]="cvHref(student.cvUrl)" target="_blank" rel="noreferrer">
               <mat-icon aria-hidden="true">description</mat-icon>
-              Open CV
+              {{ 'Open CV' | t }}
             </a>
           </div>
 
           <section class="section">
-            <div class="section-hd">Skills</div>
-            <mat-chip-set aria-label="Student skills">
+            <div class="section-hd">{{ 'Skills' | t }}</div>
+            <mat-chip-set [attr.aria-label]="'Student skills' | t">
               <mat-chip *ngFor="let s of student.skills; trackBy: trackSkill">
-                {{ s.skillName }} • {{ s.yearsOfExperience }}y
+                {{ s.skillName }} • {{ '{years}y' | t: {years: s.yearsOfExperience} }}
               </mat-chip>
             </mat-chip-set>
           </section>
 
           <section class="section" *ngIf="student.bio">
-            <div class="section-hd">Bio</div>
+            <div class="section-hd">{{ 'Bio' | t }}</div>
             <p class="bio">{{ student.bio }}</p>
           </section>
 
           <section class="section ai-report" *ngIf="evaluation$ | async as evaluation">
-            <div class="section-hd">AI GitHub Summary (Company View)</div>
+            <div class="section-hd">{{ 'AI GitHub Summary (Company View)' | t }}</div>
             <div class="eval-top">
               <span class="eval-pill" [ngClass]="'st-' + (evaluation?.status ?? 'none')">
                 {{ evaluationStatusLabel(evaluation) }}
@@ -93,49 +93,49 @@
                   <mat-icon aria-hidden="true">auto_awesome</mat-icon>
                   {{ evaluationActionLabel(evaluation) }}
                 </button>
-                <span class="eval-date">Last analyzed: {{ formatIsoDate(evaluation?.lastAnalyzedAt ?? null) }}</span>
+                <span class="eval-date">{{ 'Last analyzed: {date}' | t: {date: formatIsoDate(evaluation?.lastAnalyzedAt ?? null)} }}</span>
               </div>
             </div>
 
             <div class="eval-hint" *ngIf="!student.contact.githubUrl">
-              Student needs to add a GitHub URL before AI summary can run.
+              {{ 'Student needs to add a GitHub URL before AI summary can run.' | t }}
             </div>
 
             <div class="eval-error" *ngIf="evaluation?.lastError">{{ evaluation?.lastError }}</div>
 
             <p class="ai-summary" *ngIf="evaluation?.summaryMk; else noAiSummary">{{ evaluation?.summaryMk }}</p>
             <ng-template #noAiSummary>
-              <p class="ai-summary ai-summary-empty">No AI summary yet. Click Generate AI Summary.</p>
+              <p class="ai-summary ai-summary-empty">{{ 'No AI summary yet. Click Generate AI Summary.' | t }}</p>
             </ng-template>
 
             <div class="eval-scores" *ngIf="evaluation?.scores?.overall !== null">
               <div class="score">
-                <div class="k">Overall</div>
+                <div class="k">{{ 'Overall' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.overall }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Code Quality</div>
+                <div class="k">{{ 'Code Quality' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.codeQuality }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Consistency</div>
+                <div class="k">{{ 'Consistency' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.consistency }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Activity</div>
+                <div class="k">{{ 'Activity' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.activity }}/100</div>
               </div>
               <div class="score">
-                <div class="k">Documentation</div>
+                <div class="k">{{ 'Documentation' | t }}</div>
                 <div class="v">{{ evaluation?.scores?.documentation }}/100</div>
               </div>
             </div>
 
             <div class="eval-metrics" *ngIf="evaluation?.metrics as m">
-              <div><strong>Commits ({{ m.commitWindowDays }}d):</strong> {{ m.commitCount }}</div>
-              <div><strong>Active weeks:</strong> {{ m.activeWeeks }}</div>
-              <div><strong>Avg per week:</strong> {{ m.averageCommitsPerWeek }}</div>
-              <div><strong>Activity spread:</strong> {{ asPercent(m.activitySpread) }}</div>
+              <div><strong>{{ 'Commits ({days}d):' | t: {days: m.commitWindowDays} }}</strong> {{ m.commitCount }}</div>
+              <div><strong>{{ 'Active weeks:' | t }}</strong> {{ m.activeWeeks }}</div>
+              <div><strong>{{ 'Avg per week:' | t }}</strong> {{ m.averageCommitsPerWeek }}</div>
+              <div><strong>{{ 'Activity spread:' | t }}</strong> {{ asPercent(m.activitySpread) }}</div>
             </div>
           </section>
         </mat-card-content>
@@ -146,14 +146,14 @@
   <ng-template #loading>
     <div class="state">
       <mat-progress-spinner mode="indeterminate" diameter="34"></mat-progress-spinner>
-      <span>Loading student account...</span>
+      <span>{{ 'Loading student account...' | t }}</span>
     </div>
   </ng-template>
 
   <ng-template #failed>
     <div class="state">
       <mat-icon aria-hidden="true">error_outline</mat-icon>
-      <span>Could not load this student account.</span>
+      <span>{{ 'Could not load this student account.' | t }}</span>
     </div>
   </ng-template>
 </div>

@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Subject, takeUntil} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {AuthService, UserRole} from '../../services/auth.service';
 
 type LoginRole = UserRole;
@@ -31,6 +32,7 @@ export class LoginComponent implements OnDestroy {
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {}
 
   ngOnDestroy(): void {
@@ -56,11 +58,11 @@ export class LoginComponent implements OnDestroy {
         error: (err: unknown) => {
           const msg =
             err instanceof HttpErrorResponse
-              ? (err.error?.message ?? err.error?.error ?? 'Login failed.')
+              ? (err.error?.message ?? err.error?.error ?? this.i18n.t('Login failed.'))
               : err instanceof Error
                 ? err.message
-                : 'Login failed.';
-          this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+                : this.i18n.t('Login failed.');
+          this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
           this.isSubmitting = false;
         },
         complete: () => (this.isSubmitting = false),

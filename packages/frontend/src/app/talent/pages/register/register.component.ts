@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Subject, takeUntil} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {AuthService} from '../../services/auth.service';
 
 type RegisterRole = 'student' | 'company';
@@ -47,6 +48,7 @@ export class RegisterComponent implements OnDestroy {
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar,
+    private readonly i18n: LocalizationService,
   ) {
     this.form.controls.role.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((role) => this.setRoleValidators(role));
     this.setRoleValidators(this.form.controls.role.value);
@@ -109,7 +111,7 @@ export class RegisterComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          this.snackBar.open(result.message, 'Dismiss', {duration: 4500});
+          this.snackBar.open(result.message, this.i18n.t('Dismiss'), {duration: 4500});
           void this.router.navigateByUrl('/register/company-pending');
         },
         error: (err: unknown) => this.handleRegistrationError(err),
@@ -120,11 +122,11 @@ export class RegisterComponent implements OnDestroy {
   private handleRegistrationError(err: unknown): void {
     const msg =
       err instanceof HttpErrorResponse
-        ? (err.error?.message ?? err.error?.error ?? 'Registration failed.')
+        ? (err.error?.message ?? err.error?.error ?? this.i18n.t('Registration failed.'))
         : err instanceof Error
           ? err.message
-          : 'Registration failed.';
-    this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+          : this.i18n.t('Registration failed.');
+    this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
     this.isSubmitting = false;
   }
 }

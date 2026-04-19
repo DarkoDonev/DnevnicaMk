@@ -5,6 +5,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {combineLatest, map, shareReplay, startWith, Subject, switchMap, takeUntil} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {Student} from '../../models';
 import {StudentDirectoryService} from '../../services/student-directory.service';
 import {TechSkillsService} from '../../services/tech-skills.service';
@@ -70,6 +71,7 @@ export class CompanyDashboardComponent implements OnDestroy {
     private readonly skillService: TechSkillsService,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
+    private readonly i18n: LocalizationService,
   ) {
     this.filters.controls.skills.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((skills) => {
       this.syncRequirementsWithSkills((skills ?? []).filter(Boolean));
@@ -108,15 +110,19 @@ export class CompanyDashboardComponent implements OnDestroy {
         const msg =
           result.status === 'ready'
             ? result.fromCache
-              ? `Used cached AI evaluation for ${student.name}.`
-              : `AI evaluation updated for ${student.name}.`
-            : `AI evaluation failed for ${student.name}.`;
-        this.snackBar.open(msg, 'Dismiss', {duration: 3200});
+              ? this.i18n.t('Used cached AI evaluation for {name}.', {name: student.name})
+              : this.i18n.t('AI evaluation updated for {name}.', {name: student.name})
+            : this.i18n.t('AI evaluation failed for {name}.', {name: student.name});
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3200});
         this.analyzingStudentIds.delete(student.id);
         this.reload$.next();
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not run AI evaluation.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not run AI evaluation.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
         this.analyzingStudentIds.delete(student.id);
       },
     });
@@ -135,7 +141,11 @@ export class CompanyDashboardComponent implements OnDestroy {
         });
       },
       error: (err: unknown) => {
-        this.snackBar.open(this.toErrorMessage(err, 'Could not load AI evaluation details.'), 'Dismiss', {duration: 3500});
+        this.snackBar.open(
+          this.toErrorMessage(err, this.i18n.t('Could not load AI evaluation details.')),
+          this.i18n.t('Dismiss'),
+          {duration: 3500},
+        );
       },
     });
   }

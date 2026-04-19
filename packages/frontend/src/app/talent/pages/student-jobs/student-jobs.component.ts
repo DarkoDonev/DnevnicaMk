@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {catchError, combineLatest, map, of, shareReplay, startWith, Subject, switchMap} from 'rxjs';
 
+import {LocalizationService} from '../../../i18n/localization.service';
 import {JobBoardService} from '../../services/job-board.service';
 import {ApplicationStatus, JobApplication, JobPost, WorkMode} from '../../models';
 import {TechSkillsService} from '../../services/tech-skills.service';
@@ -48,8 +49,8 @@ export class StudentJobsComponent {
     switchMap(() =>
       this.jobs.getMyApplications().pipe(
         catchError((err: unknown) => {
-          const msg = this.toErrorMessage(err, 'Could not load your applications.');
-          this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+          const msg = this.toErrorMessage(err, this.i18n.t('Could not load your applications.'));
+          this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
           return of([] as readonly JobApplication[]);
         }),
       ),
@@ -84,6 +85,7 @@ export class StudentJobsComponent {
     private readonly skillService: TechSkillsService,
     private readonly snackBar: MatSnackBar,
     private readonly router: Router,
+    private readonly i18n: LocalizationService,
   ) {}
 
   trackJob = (_: number, j: JobPost) => j.id;
@@ -95,24 +97,32 @@ export class StudentJobsComponent {
   statusLabel(status: ApplicationStatus): string {
     switch (status) {
       case 'INVITED':
-        return 'Invited';
+        return this.i18n.t('Invited');
       case 'APPLIED':
-        return 'Applied';
+        return this.i18n.t('Applied');
       case 'APPROVED':
-        return 'Approved';
+        return this.i18n.t('Approved');
       case 'HR_INTERVIEW':
-        return 'HR Interview';
+        return this.i18n.t('HR Interview');
       case 'TECHNICAL_INTERVIEW':
-        return 'Technical Interview';
+        return this.i18n.t('Technical Interview');
       case 'DONE':
-        return 'Done';
+        return this.i18n.t('Done');
       case 'DECLINED':
-        return 'Declined';
+        return this.i18n.t('Declined');
       case 'REJECTED':
-        return 'Rejected';
+        return this.i18n.t('Rejected');
       default:
         return status;
     }
+  }
+
+  workModeLabel(mode: WorkModeFilter): string {
+    if (mode === 'Any') return this.i18n.t('Any');
+    if (mode === 'Remote') return this.i18n.t('Remote');
+    if (mode === 'Hybrid') return this.i18n.t('Hybrid');
+    if (mode === 'On-site') return this.i18n.t('On-site');
+    return mode;
   }
 
   applyToJob(jobId: number, alreadyApplied: boolean): void {
@@ -121,13 +131,13 @@ export class StudentJobsComponent {
 
     this.jobs.applyToJob(jobId).subscribe({
       next: () => {
-        this.snackBar.open('Application submitted.', 'Dismiss', {duration: 2500});
+        this.snackBar.open(this.i18n.t('Application submitted.'), this.i18n.t('Dismiss'), {duration: 2500});
         this.applyingJobId = null;
         this.applicationsReload$.next();
       },
       error: (err: unknown) => {
-        const msg = this.toErrorMessage(err, 'Could not apply to this job.');
-        this.snackBar.open(msg, 'Dismiss', {duration: 3500});
+        const msg = this.toErrorMessage(err, this.i18n.t('Could not apply to this job.'));
+        this.snackBar.open(msg, this.i18n.t('Dismiss'), {duration: 3500});
         this.applyingJobId = null;
       },
     });
@@ -151,8 +161,8 @@ export class StudentJobsComponent {
         j.companyName,
         j.location,
         j.workMode,
-        j.isJob ? 'work' : '',
-        j.isInternship ? 'internship' : '',
+        j.isJob ? this.i18n.t('Work') : '',
+        j.isInternship ? this.i18n.t('Internship') : '',
         j.description,
         ...j.requirements.map((r) => r.skillName),
       ]

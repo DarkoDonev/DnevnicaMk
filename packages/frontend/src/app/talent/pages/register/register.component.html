@@ -1,116 +1,116 @@
 <div class="register">
-  <section class="pitch" aria-label="Product pitch">
+  <section class="pitch" [attr.aria-label]="'Register' | t">
     <div class="pitch-inner">
       <div class="kicker">DnevnicaMK</div>
-      <h1 class="headline">Create your account.</h1>
-      <p class="subhead">Students build profiles. Companies post jobs and search by skills.</p>
+      <h1 class="headline">{{ 'Create your account.' | t }}</h1>
+      <p class="subhead">{{ 'Students build profiles. Companies post jobs and search by skills.' | t }}</p>
     </div>
   </section>
 
-  <section class="panel" aria-label="Register panel">
+  <section class="panel" [attr.aria-label]="'Register' | t">
     <mat-card class="card" appearance="outlined">
       <mat-card-header>
-        <mat-card-title class="card-title">Register</mat-card-title>
-        <mat-card-subtitle>Create a Student or Company account</mat-card-subtitle>
+        <mat-card-title class="card-title">{{ 'Register' | t }}</mat-card-title>
+        <mat-card-subtitle>{{ 'Create a Student or Company account' | t }}</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <form class="form" [formGroup]="form" (ngSubmit)="submit()">
           <div class="role-toggle">
-            <mat-button-toggle-group formControlName="role" aria-label="Role">
+            <mat-button-toggle-group formControlName="role" [attr.aria-label]="'Role' | t">
               <mat-button-toggle value="student">
                 <mat-icon aria-hidden="true">school</mat-icon>
-                Student
+                {{ 'Student' | t }}
               </mat-button-toggle>
               <mat-button-toggle value="company">
                 <mat-icon aria-hidden="true">apartment</mat-icon>
-                Company
+                {{ 'Company' | t }}
               </mat-button-toggle>
             </mat-button-toggle-group>
           </div>
 
           <div class="grid">
             <mat-form-field appearance="outline">
-              <mat-label>Email</mat-label>
-              <input matInput type="email" formControlName="email" placeholder="you@example.com" />
+              <mat-label>{{ 'Email' | t }}</mat-label>
+              <input matInput type="email" formControlName="email" [placeholder]="'you@example.com' | t" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Password</mat-label>
-              <input matInput type="password" formControlName="password" placeholder="••••••••" />
-              <mat-hint>Min 6 characters</mat-hint>
+              <mat-label>{{ 'Password' | t }}</mat-label>
+              <input matInput type="password" formControlName="password" [placeholder]="'••••••••' | t" />
+              <mat-hint>{{ 'Min 6 characters' | t }}</mat-hint>
             </mat-form-field>
           </div>
 
           <ng-container *ngIf="form.controls.role.value === 'student'; else company">
-            <div class="section-hd">Student Profile</div>
+            <div class="section-hd">{{ 'Student Profile' | t }}</div>
             <mat-form-field appearance="outline">
-              <mat-label>Full Name</mat-label>
-              <input matInput formControlName="studentName" placeholder="e.g. Elena Petrova" />
+              <mat-label>{{ 'Full Name' | t }}</mat-label>
+              <input matInput formControlName="studentName" [placeholder]="'e.g. Elena Petrova' | t" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Headline</mat-label>
-              <input matInput formControlName="headline" placeholder="e.g. Frontend student (Angular, TypeScript)" />
+              <mat-label>{{ 'Headline' | t }}</mat-label>
+              <input matInput formControlName="headline" [placeholder]="'e.g. Frontend student (Angular, TypeScript)' | t" />
             </mat-form-field>
 
             <div class="grid">
               <mat-form-field appearance="outline">
-                <mat-label>Phone</mat-label>
-                <input matInput formControlName="phone" placeholder="+389 ..." />
+                <mat-label>{{ 'Phone' | t }}</mat-label>
+                <input matInput formControlName="phone" [placeholder]="'+389 ...' | t" />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Location</mat-label>
-                <input matInput formControlName="location" placeholder="Skopje, MK" />
+                <mat-label>{{ 'Location' | t }}</mat-label>
+                <input matInput formControlName="location" [placeholder]="'Skopje, MK' | t" />
               </mat-form-field>
             </div>
 
             <div class="grid">
               <mat-form-field appearance="outline">
-                <mat-label>LinkedIn URL</mat-label>
-                <input matInput formControlName="linkedInUrl" placeholder="https://linkedin.com/in/..." />
+                <mat-label>{{ 'LinkedIn URL' | t }}</mat-label>
+                <input matInput formControlName="linkedInUrl" [placeholder]="'https://linkedin.com/in/...' | t" />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>GitHub URL</mat-label>
-                <input matInput formControlName="githubUrl" placeholder="https://github.com/..." />
+                <mat-label>{{ 'GitHub URL' | t }}</mat-label>
+                <input matInput formControlName="githubUrl" [placeholder]="'https://github.com/...' | t" />
               </mat-form-field>
             </div>
 
             <mat-form-field appearance="outline">
-              <mat-label>Bio</mat-label>
-              <textarea matInput rows="4" formControlName="bio" placeholder="A short intro..."></textarea>
+              <mat-label>{{ 'Bio' | t }}</mat-label>
+              <textarea matInput rows="4" formControlName="bio" [placeholder]="'A short intro...' | t"></textarea>
             </mat-form-field>
           </ng-container>
 
           <ng-template #company>
-            <div class="section-hd">Company Profile</div>
+            <div class="section-hd">{{ 'Company Profile' | t }}</div>
             <mat-form-field appearance="outline">
-              <mat-label>Company Name</mat-label>
-              <input matInput formControlName="companyName" placeholder="e.g. Nimbus Labs" />
+              <mat-label>{{ 'Company Name' | t }}</mat-label>
+              <input matInput formControlName="companyName" [placeholder]="'e.g. Nimbus Labs' | t" />
             </mat-form-field>
 
             <div class="grid">
               <mat-form-field appearance="outline">
-                <mat-label>Location</mat-label>
-                <input matInput formControlName="companyLocation" placeholder="Remote / Skopje, MK" />
+                <mat-label>{{ 'Location' | t }}</mat-label>
+                <input matInput formControlName="companyLocation" [placeholder]="'Remote / Skopje, MK' | t" />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
-                <mat-label>Website</mat-label>
-                <input matInput formControlName="websiteUrl" placeholder="https://company.com" />
+                <mat-label>{{ 'Website' | t }}</mat-label>
+                <input matInput formControlName="websiteUrl" [placeholder]="'https://company.com' | t" />
               </mat-form-field>
             </div>
           </ng-template>
 
           <button class="submit" mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
             <mat-icon aria-hidden="true">person_add</mat-icon>
-            Create Account
+            {{ 'Create Account' | t }}
           </button>
 
           <div class="footer">
-            <a mat-button routerLink="/login">Already have an account? Login</a>
+            <a mat-button routerLink="/login">{{ 'Already have an account? Login' | t }}</a>
           </div>
         </form>
       </mat-card-content>

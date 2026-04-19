@@ -1,14 +1,14 @@
 <div class="company-profile">
   <header class="hd">
     <div class="hd-left">
-      <div class="eyebrow">Company Profile</div>
-      <h1 class="title">Your Company Details</h1>
-      <p class="subtitle">Basic account profile for your company.</p>
+      <div class="eyebrow">{{ 'Company Profile' | t }}</div>
+      <h1 class="title">{{ 'Your Company Details' | t }}</h1>
+      <p class="subtitle">{{ 'Basic account profile for your company.' | t }}</p>
     </div>
     <div class="hd-actions">
       <a mat-flat-button color="primary" routerLink="/company/ai-evaluation">
         <mat-icon aria-hidden="true">analytics</mat-icon>
-        AI GitHub Evaluation
+        {{ 'AI GitHub Evaluation' | t }}
       </a>
     </div>
   </header>
@@ -21,14 +21,14 @@
             <img
               *ngIf="profile.profileImageUrl; else companyInitials"
               [src]="profileImageHref(profile.profileImageUrl)"
-              [alt]="profile.name + ' company photo'"
+              [alt]="'Company photo for {name}' | t: {name: profile.name}"
               class="logo-img"
             />
             <ng-template #companyInitials>{{ initialsFor(profile.name) }}</ng-template>
           </div>
 
           <div class="logo-upload">
-            <div class="k">Company Photo</div>
+            <div class="k">{{ 'Company Photo' | t }}</div>
             <input
               #photoInput
               type="file"
@@ -36,32 +36,32 @@
               (change)="onProfileImageSelected(photoInput)"
               [disabled]="isSaving"
             />
-            <div class="hint">Allowed: JPG, PNG, WEBP. Max 5MB.</div>
+            <div class="hint">{{ 'Allowed: JPG, PNG, WEBP. Max 5MB.' | t }}</div>
           </div>
         </div>
 
         <div class="grid">
           <div class="item">
-            <div class="k">Company Name</div>
+            <div class="k">{{ 'Company Name' | t }}</div>
             <div class="v">{{ profile.name }}</div>
           </div>
           <div class="item">
-            <div class="k">Email</div>
+            <div class="k">{{ 'Email' | t }}</div>
             <div class="v">{{ profile.email }}</div>
           </div>
           <div class="item">
-            <div class="k">Location</div>
+            <div class="k">{{ 'Location' | t }}</div>
             <div class="v">{{ profile.location }}</div>
           </div>
           <div class="item">
-            <div class="k">Website</div>
+            <div class="k">{{ 'Website' | t }}</div>
             <div class="v">
               <a *ngIf="profile.websiteUrl" [href]="profile.websiteUrl" target="_blank" rel="noreferrer">{{ profile.websiteUrl }}</a>
-              <span *ngIf="!profile.websiteUrl">Not provided</span>
+              <span *ngIf="!profile.websiteUrl">{{ 'Not provided' | t }}</span>
             </div>
           </div>
           <div class="item">
-            <div class="k">Registration Status</div>
+            <div class="k">{{ 'Registration Status' | t }}</div>
             <div class="v status" [ngClass]="'st-' + profile.registrationStatus">{{ statusLabel(profile.registrationStatus) }}</div>
           </div>
         </div>
@@ -72,7 +72,7 @@
   <ng-template #loading>
     <div class="state">
       <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
-      <div class="state-txt">Loading profile…</div>
+      <div class="state-txt">{{ 'Loading profile…' | t }}</div>
     </div>
   </ng-template>
 </div>
